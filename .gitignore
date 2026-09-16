@@ -1,0 +1,24 @@
+# Internal business data — never publish
+*.xlsx
+*.xls
+*.xlsm
+*.csv
+*.numbers
+*.pdf
+
+# Local-only directories
+archive/
+backup-*/
+raw/
+
+# Planning docs, scripts, full-resolution source art
+*-PLAN.md
+*.py
+*.psd
+*.ai
+*-source.png
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini

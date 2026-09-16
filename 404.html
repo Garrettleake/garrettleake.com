@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    (function () {
+      var p = window.location.pathname, s = window.location.search, h = window.location.hash, to = null;
+      var known = ['/work/', '/work/team-ares/', '/work/claim-the-throne/', '/work/rotn/', '/work/gkht-exotics/', '/about/', '/contact/'];
+      if (/\.html$/i.test(p)) to = p.replace(/index\.html$/i, '').replace(/\.html$/i, '/');
+      else if (p !== '/' && !/\/$/.test(p)) to = p + '/';
+      if (to && known.indexOf(to) === -1) to = '/';
+      if (!to) to = '/';
+      if (to !== p) window.location.replace(to + s + h);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Page not found — Garrett Leake</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <style>html{color-scheme:dark}body{margin:0;background:#0A0B0F;color:#EDEFF4;font:16px/1.6 system-ui,sans-serif;display:grid;place-items:center;min-height:100vh}a{color:#FF3B4E}main{text-align:center;padding:24px}</style>
+</head>
+<body><main><p>That page doesn't exist.</p><p><a href="/">Back to garrettleake.com</a></p></main></body>
+</html>
