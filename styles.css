@@ -226,6 +226,20 @@
   .tile.empty{border-style:dashed;cursor:default}
   @media (max-width:860px){.work{grid-template-columns:repeat(2,1fr)}.tile.w3,.tile.w3h,.tile.w2,.tile.w4,.tile.sq,.tile.tall,.tile.wide{grid-column:span 2}.tile.tall{aspect-ratio:4/3}.tile.wide,.tile.w3h{aspect-ratio:16/9}.tile.w4{aspect-ratio:16/9}.tile.sq{aspect-ratio:1}}
   @media (max-width:560px){.work{grid-template-columns:1fr}.tile.w3,.tile.w3h,.tile.w2,.tile.w4,.tile.sq,.tile.tall,.tile.wide{grid-column:span 1}}
+  /* compact merch + brand grids on phones/tablets: two-up, hero tiles full width */
+  @media (max-width:860px){
+    #merch .work,#work .work{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;grid-auto-flow:dense}
+    #merch .tile,#work .tile{padding:10px;min-height:0}
+    #merch .tile .k,#work .tile .k{font-size:9px;letter-spacing:.1em}
+    #merch .tile .t,#work .tile .t{font-size:12px;margin-top:2px}
+    #merch .tile .ph,#work .tile .ph{display:none}
+    #merch .tile.sq,#work .tile.sq,#merch .tile.tall,#work .tile.tall,#merch .tile.w2,#work .tile.w2,#merch .tile.w3,#work .tile.w3{grid-column:span 1}
+    #merch .tile.sq,#work .tile.sq{aspect-ratio:1}
+    #merch .tile.tall,#work .tile.tall{aspect-ratio:3/4}
+    #merch .tile.w3,#work .tile.w3,#merch .tile.w2,#work .tile.w2{aspect-ratio:4/3}
+    #merch .tile.w4,#work .tile.w4,#merch .tile.wide,#work .tile.wide,#merch .tile.w3h,#work .tile.w3h{grid-column:span 2;aspect-ratio:16/9}
+    #merch .tile.contain img{padding:6%}
+  }
 
   /* merch teasers with red glow */
   .teasers-wrap{position:relative}
