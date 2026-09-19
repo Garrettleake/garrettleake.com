@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="../../styles.css?v=2d141410">
+  <link rel="stylesheet" href="../../styles.css?v=702ee85e">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CreativeWork", "name": "#ClaimTheThrone — Team Ares recruitment campaign", "url": "https://garrettleake.com/work/claim-the-throne/", "about": "Sponsored esports recruitment campaign for NXT LVL Gamer Shots", "creator": {"@id": "https://garrettleake.com/#person"}, "sponsor": {"@type": "Organization", "name": "NXT LVL Gamer Shots"}, "dateCreated": "2022", "image": "https://garrettleake.com/img/ctt-youtube-thumb.jpg", "keywords": ["sponsored campaign", "esports recruitment", "influencer marketing", "Team Ares", "NXT LVL"]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What was the #ClaimTheThrone recruitment challenge?", "acceptedAnswer": {"@type": "Answer", "text": "#ClaimTheThrone was Team Ares' 2022 open recruitment challenge: a multi-week event where anyone could compete to join the team, wrapped in live streams, YouTube videos, TikToks and Shorts, with a $1,000 cash prize and a gaming PC for the winner."}}, {"@type": "Question", "name": "Who sponsored #ClaimTheThrone?", "acceptedAnswer": {"@type": "Answer", "text": "NXT LVL Gamer Shots was the presenting sponsor. NXT LVL paid for the campaign, funded the $1,000 + gaming PC prize, and shipped more than 25 product packages to contestants. Garrett Leake sold and managed the sponsorship."}}, {"@type": "Question", "name": "How well did the campaign perform?", "acceptedAnswer": {"@type": "Answer", "text": "The recruitment Short \"I Bought Team Ares!\" reached 6.9 million views, a companion Short reached 1.9 million, and the launch video \"We want YOU to join Team Ares! (Free PC &amp; $1000)\" reached 39,000 views on the main channel."}}]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://garrettleake.com/"}, {"@type": "ListItem", "position": 2, "name": "Work", "item": "https://garrettleake.com/work/"}, {"@type": "ListItem", "position": 3, "name": "#ClaimTheThrone", "item": "https://garrettleake.com/work/claim-the-throne/"}]}</script>
@@ -47,7 +47,22 @@
       <a href="../../work/gkht-exotics/">GKHT Exotics</a>
       <a href="../../about/">About</a>
     </div>
-    <a class="nav-cta" href="../../contact/">Contact</a>
+    <div class="nav-right">
+      <a class="nav-cta" href="../../contact/">Contact</a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="nav-menu" id="site-menu">
+    <div class="inner">
+      <a href="../../">Home</a>
+      <a href="../../work/">Work</a>
+      <a href="../../work/team-ares/">Team Ares</a>
+      <a href="../../work/claim-the-throne/">Claim the Throne</a>
+      <a href="../../work/rotn/">ROTN</a>
+      <a href="../../work/gkht-exotics/">GKHT Exotics</a>
+      <a href="../../about/">About</a>
+      <a href="../../contact/">Contact</a>
+    </div>
   </div>
 </nav>
 <header class="page-hero">
@@ -134,6 +149,17 @@
 })();
 </script>
 
+<script>
+(function(){
+  var nav=document.querySelector('.nav'),btn=nav&&nav.querySelector('.nav-toggle'),menu=nav&&nav.querySelector('.nav-menu');
+  if(!btn||!menu)return;
+  function set(open){nav.classList.toggle('menu-open',open);btn.setAttribute('aria-expanded',open?'true':'false');btn.setAttribute('aria-label',open?'Close menu':'Open menu');}
+  btn.addEventListener('click',function(){set(!nav.classList.contains('menu-open'));});
+  menu.addEventListener('click',function(e){if(e.target.closest('a'))set(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
+  document.addEventListener('click',function(e){if(nav.classList.contains('menu-open')&&!nav.contains(e.target))set(false);});
+})();
+</script>
 <script>
 (function(){var y=String(new Date().getFullYear());document.querySelectorAll('.js-year').forEach(function(el){if(el.textContent.trim()!==y)el.textContent=y;});})();
 </script>

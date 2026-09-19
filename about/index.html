@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="../styles.css?v=2d141410">
+  <link rel="stylesheet" href="../styles.css?v=702ee85e">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Person", "@id": "https://garrettleake.com/#person", "name": "Garrett Leake", "url": "https://garrettleake.com/", "image": "https://garrettleake.com/img/garrett-leake.jpg", "jobTitle": "Brand & Creative Director", "description": "Garrett Leake is a brand and creative director from Arizona — former owner and CEO of Team Ares, founder of ROTN and GKHT Exotics. Open to work.", "worksFor": {"@type": "Organization", "name": "GKHT Exotics", "url": "https://gkhtexotics.com/"}, "alumniOf": {"@type": "Organization", "name": "Team Ares LLC"}, "address": {"@type": "PostalAddress", "addressRegion": "AZ", "addressCountry": "US"}, "email": "mailto:support@wolfpog.com", "knowsAbout": ["brand direction", "creative direction", "sponsorship management", "influencer marketing", "esports", "merchandise", "apparel", "creator networks", "Team Ares", "ROTN", "GKHT Exotics"], "sameAs": ["https://www.instagram.com/gkht/", "https://x.com/aresgarrett", "https://gkhtexotics.com/", "https://www.linkedin.com/in/garrett-leake-333968214/", "https://www.crunchbase.com/person/garrett-leake"], "homeLocation": {"@type": "Place", "name": "Scottsdale, Arizona"}}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Who is Garrett Leake?", "acceptedAnswer": {"@type": "Answer", "text": "Garrett Leake is a brand and creative director based in Arizona. He was an owner and the CEO of Team Ares, an esports and creator organization, from 2020 to 2023; founded the apparel brand ROTN (Rich Off The Net) in 2023; and founded GKHT Exotics, an exotic car rental company operating in Los Angeles and Phoenix / Scottsdale."}}, {"@type": "Question", "name": "What does Garrett Leake do?", "acceptedAnswer": {"@type": "Answer", "text": "Brand direction, creative direction and sponsorship strategy. At Team Ares he sold and managed brand partnerships (SCUF Gaming, Epic Games, Samsung, AXE, ExitLag, NXT LVL), directed the brand and every merch drop, and ran events. Today he runs GKHT Exotics and is open to brand director, creative director and partnerships roles."}}, {"@type": "Question", "name": "Where is Garrett Leake based?", "acceptedAnswer": {"@type": "Answer", "text": "Arizona — the Phoenix / Scottsdale area. He works with brands and creators remotely and in Los Angeles."}}]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://garrettleake.com/"}, {"@type": "ListItem", "position": 2, "name": "About", "item": "https://garrettleake.com/about/"}]}</script>
@@ -47,7 +47,22 @@
       <a href="../work/gkht-exotics/">GKHT Exotics</a>
       <a href="../about/" class="current">About</a>
     </div>
-    <a class="nav-cta" href="../contact/">Contact</a>
+    <div class="nav-right">
+      <a class="nav-cta" href="../contact/">Contact</a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="nav-menu" id="site-menu">
+    <div class="inner">
+      <a href="../">Home</a>
+      <a href="../work/">Work</a>
+      <a href="../work/team-ares/">Team Ares</a>
+      <a href="../work/claim-the-throne/">Claim the Throne</a>
+      <a href="../work/rotn/">ROTN</a>
+      <a href="../work/gkht-exotics/">GKHT Exotics</a>
+      <a href="../about/" class="current">About</a>
+      <a href="../contact/">Contact</a>
+    </div>
   </div>
 </nav>
 <header class="page-hero">
@@ -123,6 +138,17 @@
 })();
 </script>
 
+<script>
+(function(){
+  var nav=document.querySelector('.nav'),btn=nav&&nav.querySelector('.nav-toggle'),menu=nav&&nav.querySelector('.nav-menu');
+  if(!btn||!menu)return;
+  function set(open){nav.classList.toggle('menu-open',open);btn.setAttribute('aria-expanded',open?'true':'false');btn.setAttribute('aria-label',open?'Close menu':'Open menu');}
+  btn.addEventListener('click',function(){set(!nav.classList.contains('menu-open'));});
+  menu.addEventListener('click',function(e){if(e.target.closest('a'))set(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
+  document.addEventListener('click',function(e){if(nav.classList.contains('menu-open')&&!nav.contains(e.target))set(false);});
+})();
+</script>
 <script>
 (function(){var y=String(new Date().getFullYear());document.querySelectorAll('.js-year').forEach(function(el){if(el.textContent.trim()!==y)el.textContent=y;});})();
 </script>

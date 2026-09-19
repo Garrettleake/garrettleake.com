@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="../styles.css?v=2d141410">
+  <link rel="stylesheet" href="../styles.css?v=702ee85e">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "ItemList", "name": "Case studies by Garrett Leake", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Team Ares", "url": "https://garrettleake.com/work/team-ares/"}, {"@type": "ListItem", "position": 2, "name": "#ClaimTheThrone", "url": "https://garrettleake.com/work/claim-the-throne/"}, {"@type": "ListItem", "position": 3, "name": "ROTN — Rich Off The Net", "url": "https://garrettleake.com/work/rotn/"}, {"@type": "ListItem", "position": 4, "name": "GKHT Exotics", "url": "https://garrettleake.com/work/gkht-exotics/"}]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://garrettleake.com/"}, {"@type": "ListItem", "position": 2, "name": "Work", "item": "https://garrettleake.com/work/"}]}</script>
   </head>
@@ -46,7 +46,22 @@
       <a href="../work/gkht-exotics/">GKHT Exotics</a>
       <a href="../about/">About</a>
     </div>
-    <a class="nav-cta" href="../contact/">Contact</a>
+    <div class="nav-right">
+      <a class="nav-cta" href="../contact/">Contact</a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="nav-menu" id="site-menu">
+    <div class="inner">
+      <a href="../">Home</a>
+      <a href="../work/" class="current">Work</a>
+      <a href="../work/team-ares/">Team Ares</a>
+      <a href="../work/claim-the-throne/">Claim the Throne</a>
+      <a href="../work/rotn/">ROTN</a>
+      <a href="../work/gkht-exotics/">GKHT Exotics</a>
+      <a href="../about/">About</a>
+      <a href="../contact/">Contact</a>
+    </div>
   </div>
 </nav>
 <header class="page-hero">
@@ -102,6 +117,17 @@
 })();
 </script>
 
+<script>
+(function(){
+  var nav=document.querySelector('.nav'),btn=nav&&nav.querySelector('.nav-toggle'),menu=nav&&nav.querySelector('.nav-menu');
+  if(!btn||!menu)return;
+  function set(open){nav.classList.toggle('menu-open',open);btn.setAttribute('aria-expanded',open?'true':'false');btn.setAttribute('aria-label',open?'Close menu':'Open menu');}
+  btn.addEventListener('click',function(){set(!nav.classList.contains('menu-open'));});
+  menu.addEventListener('click',function(e){if(e.target.closest('a'))set(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
+  document.addEventListener('click',function(e){if(nav.classList.contains('menu-open')&&!nav.contains(e.target))set(false);});
+})();
+</script>
 <script>
 (function(){var y=String(new Date().getFullYear());document.querySelectorAll('.js-year').forEach(function(el){if(el.textContent.trim()!==y)el.textContent=y;});})();
 </script>

@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="../../styles.css?v=2d141410">
+  <link rel="stylesheet" href="../../styles.css?v=702ee85e">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "@id": "https://garrettleake.com/work/team-ares/#org", "name": "Team Ares", "alternateName": "Team Ares LLC", "description": "Esports and creator organization headquartered in Scottsdale, Arizona, active 2020–2023. Fortnite team, creator network, apparel and sponsorship marketing.", "foundingDate": "2020", "dissolutionDate": "2023", "location": {"@type": "Place", "address": {"@type": "PostalAddress", "addressLocality": "Scottsdale", "addressRegion": "AZ", "addressCountry": "US"}}, "founder": {"@id": "https://garrettleake.com/#person"}, "member": {"@type": "OrganizationRole", "member": {"@id": "https://garrettleake.com/#person"}, "roleName": "Owner & CEO", "startDate": "2020", "endDate": "2023"}, "sameAs": ["https://www.youtube.com/@TeamAresGGs", "https://x.com/OnlyAresYT"]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CreativeWork", "name": "Team Ares — case study", "url": "https://garrettleake.com/work/team-ares/", "about": {"@id": "https://garrettleake.com/work/team-ares/#org"}, "creator": {"@id": "https://garrettleake.com/#person"}, "dateCreated": "2020", "image": "https://garrettleake.com/img/pitch-sheet-2.jpg", "keywords": ["Team Ares", "esports organization", "creator network", "sponsorship management", "merch drops", "brand direction", "Fortnite", "Scottsdale Arizona"]}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is Team Ares?", "acceptedAnswer": {"@type": "Answer", "text": "Team Ares (Team Ares LLC) was an esports and creator organization headquartered in Scottsdale, Arizona, active from 2020 to 2023. It started as a Fortnite team and grew into a marketing, apparel and entertainment brand built around a network of YouTube, TikTok and Twitch creators."}}, {"@type": "Question", "name": "Who owned Team Ares?", "acceptedAnswer": {"@type": "Answer", "text": "Garrett Leake was an owner and the CEO of Team Ares LLC, serving as Head of Business and Sales &amp; Event Manager. He co-owned the company with three partners who ran content, operations and creator support."}}, {"@type": "Question", "name": "How big was Team Ares?", "acceptedAnswer": {"@type": "Answer", "text": "At its peak the Team Ares network reached 277 million views in a single 30-day period and over one billion views combined, across roughly 17.6 million followers. The main Ares YouTube channel passed 100,000 subscribers, the TikTok account reached 270,000 followers, and Instagram reached 134,000."}}, {"@type": "Question", "name": "Who sponsored Team Ares?", "acceptedAnswer": {"@type": "Answer", "text": "Brand partners included SCUF Gaming, Epic Games, Samsung, AXE, ExitLag, NXT LVL Gamer Shots, Rematch.GG and Arrivant. Sponsorship packages ranged from $4,999 to $74,999 and were sold and managed by Garrett Leake."}}, {"@type": "Question", "name": "What games did Team Ares play?", "acceptedAnswer": {"@type": "Answer", "text": "Team Ares was rooted in Fortnite. Its creators produced Fortnite montages, tutorials, tournaments and recruitment challenges, and the org hosted cash-prize Fortnite events such as the Ares × Rematch.GG $2,500 NAE Duos Cash Cup."}}, {"@type": "Question", "name": "Is Team Ares still active?", "acceptedAnswer": {"@type": "Answer", "text": "Team Ares has been inactive since 2023. Its last major public update was the October 2023 rebrand. The YouTube and X channels remain online, and Garrett Leake no longer runs the organization day-to-day."}}]}</script>
@@ -48,7 +48,22 @@
       <a href="../../work/gkht-exotics/">GKHT Exotics</a>
       <a href="../../about/">About</a>
     </div>
-    <a class="nav-cta" href="../../contact/">Contact</a>
+    <div class="nav-right">
+      <a class="nav-cta" href="../../contact/">Contact</a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="nav-menu" id="site-menu">
+    <div class="inner">
+      <a href="../../">Home</a>
+      <a href="../../work/">Work</a>
+      <a href="../../work/team-ares/" class="current">Team Ares</a>
+      <a href="../../work/claim-the-throne/">Claim the Throne</a>
+      <a href="../../work/rotn/">ROTN</a>
+      <a href="../../work/gkht-exotics/">GKHT Exotics</a>
+      <a href="../../about/">About</a>
+      <a href="../../contact/">Contact</a>
+    </div>
   </div>
 </nav>
 <header class="page-hero">
@@ -247,6 +262,17 @@
       frame.innerHTML='';frame.appendChild(v);v.play();
     });
   });
+})();
+</script>
+<script>
+(function(){
+  var nav=document.querySelector('.nav'),btn=nav&&nav.querySelector('.nav-toggle'),menu=nav&&nav.querySelector('.nav-menu');
+  if(!btn||!menu)return;
+  function set(open){nav.classList.toggle('menu-open',open);btn.setAttribute('aria-expanded',open?'true':'false');btn.setAttribute('aria-label',open?'Close menu':'Open menu');}
+  btn.addEventListener('click',function(){set(!nav.classList.contains('menu-open'));});
+  menu.addEventListener('click',function(e){if(e.target.closest('a'))set(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')set(false);});
+  document.addEventListener('click',function(e){if(nav.classList.contains('menu-open')&&!nav.contains(e.target))set(false);});
 })();
 </script>
 <script>
