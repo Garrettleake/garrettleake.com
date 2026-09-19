@@ -160,6 +160,30 @@
     <h2>The creator network</h2>
     <p>Content creators on YouTube and TikTok — JackieZ, ThatNerdChris, Lachyz, Takeoff, Syinite, Kinja, Klarque Clint, ReelHoops, FrankN, Gift and more — and a Twitch streamer roster including LQWID, Marine Mike, Saloodz, Loserbeam, Evolve Jake and JVMafia. I tracked every creator's followers, views and engagement by platform in a monthly analytics sheet, which is where the pitch-sheet numbers came from.</p>
 
+    <h3 class="sub-h" id="testimonials" style="margin-top:28px">See what our creators had to say about Team Ares <span>Five creators · recorded for the Team Ares site · click to play</span></h3>
+    <div class="testimonials">
+      <div class="vid" data-video-src="../../media/testimonial-lqwid.mp4">
+        <div class="frame"><img src="../../img/testimonial-lqwid-poster.jpg" alt="Ares Lqwid, Twitch streamer — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+        <div class="meta"><div><h4>Ares Lqwid</h4><p>Streamer · 147K on Twitch · 27s</p></div></div>
+      </div>
+      <div class="vid" data-video-src="../../media/testimonial-tray.mp4">
+        <div class="frame"><img src="../../img/testimonial-tray-poster.jpg" alt="Ares Tray — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+        <div class="meta"><div><h4>Ares Tray</h4><p>Creator · 47s</p></div></div>
+      </div>
+      <div class="vid" data-video-src="../../media/testimonial-spayss.mp4">
+        <div class="frame"><img src="../../img/testimonial-spayss-poster.jpg" alt="Ares Spayss — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+        <div class="meta"><div><h4>Ares Spayss</h4><p>Creator · 1:11</p></div></div>
+      </div>
+      <div class="vid" data-video-src="../../media/testimonial-zerofactor.mp4">
+        <div class="frame"><img src="../../img/testimonial-zerofactor-poster.jpg" alt="Ares ZeroFactor — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+        <div class="meta"><div><h4>Ares ZeroFactor</h4><p>Creator · 1:06</p></div></div>
+      </div>
+      <div class="vid" data-video-src="../../media/testimonial-marine-mike.mp4">
+        <div class="frame"><img src="../../img/testimonial-marine-mike-poster.jpg" alt="Ares Marine Mike, Twitch streamer — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+        <div class="meta"><div><h4>Ares Marine Mike</h4><p>Streamer · 50s</p></div></div>
+      </div>
+    </div>
+
     <h2>Timeline</h2>
     <div class="timeline">
       <div class="tl major"><div class="y">2020</div><div class="h">Team Ares forms; my team is acquired</div><p class="p">I join as owner and CEO, taking over the business side.</p></div>
@@ -205,6 +229,22 @@
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLB();});
   document.querySelectorAll('img[data-lb]').forEach(function(i){i.setAttribute('tabindex','0');i.setAttribute('role','button');
     i.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openLB(i.currentSrc||i.src,i.getAttribute('data-lb'));}});});
+})();
+</script>
+<script>
+(function(){
+  // click-to-play videos on subpages: swap the poster for a <video> on demand
+  document.querySelectorAll('[data-video-src]').forEach(function(card){
+    var src=card.getAttribute('data-video-src'),frame=card.querySelector('.frame'),poster=frame&&frame.querySelector('img');
+    if(!src||!frame||!poster)return;
+    var play=document.createElement('button');play.className='play';play.type='button';play.setAttribute('aria-label','Play video');
+    play.innerHTML='<span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>';
+    frame.appendChild(play);
+    play.addEventListener('click',function(){
+      var v=document.createElement('video');v.src=src;v.controls=true;v.playsInline=true;v.poster=poster.currentSrc||poster.src;
+      frame.innerHTML='';frame.appendChild(v);v.play();
+    });
+  });
 })();
 </script>
 <script>

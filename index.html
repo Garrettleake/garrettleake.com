@@ -467,6 +467,32 @@
         </div>
       </div>
     </div>
+
+    <div class="testimonials-wrap" id="testimonials">
+      <h3 class="sub-h">See what our creators had to say about Team Ares <span>Five creators · recorded for the Team Ares site · click to play</span></h3>
+      <div class="testimonials">
+        <div class="vid" data-video="t-lqwid">
+          <div class="frame"><img src="img/testimonial-lqwid-poster.jpg" alt="Ares Lqwid, Twitch streamer — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+          <div class="meta"><div><h4>Ares Lqwid</h4><p>Streamer · 147K on Twitch · 27s</p></div></div>
+        </div>
+        <div class="vid" data-video="t-tray">
+          <div class="frame"><img src="img/testimonial-tray-poster.jpg" alt="Ares Tray — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+          <div class="meta"><div><h4>Ares Tray</h4><p>Creator · 47s</p></div></div>
+        </div>
+        <div class="vid" data-video="t-spayss">
+          <div class="frame"><img src="img/testimonial-spayss-poster.jpg" alt="Ares Spayss — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+          <div class="meta"><div><h4>Ares Spayss</h4><p>Creator · 1:11</p></div></div>
+        </div>
+        <div class="vid" data-video="t-zerofactor">
+          <div class="frame"><img src="img/testimonial-zerofactor-poster.jpg" alt="Ares ZeroFactor — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+          <div class="meta"><div><h4>Ares ZeroFactor</h4><p>Creator · 1:06</p></div></div>
+        </div>
+        <div class="vid" data-video="t-marine-mike">
+          <div class="frame"><img src="img/testimonial-marine-mike-poster.jpg" alt="Ares Marine Mike, Twitch streamer — creator testimonial about Team Ares, poster frame" width="1280" height="720" loading="lazy"></div>
+          <div class="meta"><div><h4>Ares Marine Mike</h4><p>Streamer · 50s</p></div></div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -623,7 +649,7 @@
     i.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openLB(i.currentSrc||i.src,i.getAttribute('data-lb'));}});});
 
   // click-to-play videos: swap poster for a <video> when a file is registered
-  var videos={"gow":"media/god-of-war-teaser.mp4","aow":"media/art-of-war-teaser.mp4","rematch":"media/rematch-cup-teaser.mp4","merch-ad":"media/merch-ad-2022.mp4"};
+  var videos={"gow":"media/god-of-war-teaser.mp4","aow":"media/art-of-war-teaser.mp4","rematch":"media/rematch-cup-teaser.mp4","merch-ad":"media/merch-ad-2022.mp4","t-lqwid":"media/testimonial-lqwid.mp4","t-tray":"media/testimonial-tray.mp4","t-spayss":"media/testimonial-spayss.mp4","t-zerofactor":"media/testimonial-zerofactor.mp4","t-marine-mike":"media/testimonial-marine-mike.mp4"};
   document.querySelectorAll('[data-video]').forEach(function(card){
     var key=card.getAttribute('data-video'),src=videos[key];
     if(!src)return;

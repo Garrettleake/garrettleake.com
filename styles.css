@@ -286,6 +286,15 @@
   .vid .meta{padding:16px 18px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
   .vid .meta h4{font-size:16px;font-weight:600;text-transform:uppercase}
   .vid .meta p{font-size:13px;color:var(--muted);margin-top:2px}
+  /* creator testimonials: three up, then two wide */
+  .testimonials-wrap{margin-top:56px}
+  .testimonials{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:18px}
+  .testimonials .vid{grid-column:span 2}
+  .testimonials .vid:nth-child(n+4){grid-column:span 3}
+  .testimonials .vid .meta{padding:14px 16px}
+  .testimonials .vid .meta h4{font-size:15px}
+  .testimonials .vid .frame .play span{width:56px;height:56px}
+  @media (max-width:860px){.testimonials-wrap{margin-top:40px}.testimonials{grid-template-columns:1fr;gap:14px}.testimonials .vid,.testimonials .vid:nth-child(n+4){grid-column:auto}}
   @media (max-width:760px){.vids{grid-template-columns:1fr}}
 
   /* roster */
