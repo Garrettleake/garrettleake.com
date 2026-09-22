@@ -63,11 +63,15 @@
   .nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
   .nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
   .nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-  .nav-menu{display:none;border-top:1px solid var(--line);background:rgba(10,11,15,.96)}
-  .nav-menu .inner{max-width:var(--max);margin:0 auto;padding:6px var(--gutter) 10px}
-  .nav-menu a{display:block;padding:14px 0;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--text);border-bottom:1px solid var(--line)}
-  .nav-menu a:last-child{border-bottom:0}
+  .nav-menu{display:none;border-top:1px solid var(--line);background:rgba(10,11,15,.97);max-height:calc(100vh - 60px - env(safe-area-inset-top,0px));overflow-y:auto}
+  .nav-menu .inner{max-width:var(--max);margin:0 auto;padding:8px var(--gutter) 18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}
+  .nav-menu .grp{padding-top:10px}
+  .nav-menu .grp-h{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);padding:8px 0 6px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:8px}
+  .nav-menu .grp-h::before{content:"";width:6px;height:6px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .nav-menu a{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 0;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--text);border-bottom:1px solid var(--line)}
+  .nav-menu a small{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--dim);text-transform:none}
   .nav-menu a.current{color:var(--accent)}
+  @media (max-width:480px){.nav-menu .inner{grid-template-columns:1fr}}
   .nav.menu-open .nav-menu{display:block}
   .nav .nav-right{display:flex;align-items:center}
   @media (max-width:900px){.nav-links{display:none}.nav-toggle{display:flex}}
@@ -379,6 +383,7 @@
   .page-hero .wrap{padding-block:clamp(48px,7vw,88px) clamp(36px,5vw,56px)}
   .page-hero h1{margin-top:18px;font-size:clamp(38px,6.4vw,76px);font-weight:700;text-transform:uppercase;letter-spacing:-.025em;line-height:.95}
   .page-hero .intro{margin-top:18px;max-width:64ch;color:var(--muted);font-size:clamp(16px,1.4vw,19px)}
+  @media (max-width:480px){.page-hero h1{font-size:clamp(30px,8.4vw,38px);overflow-wrap:anywhere}}
   .crumbs{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
   .crumbs a:hover{color:var(--text)}
   .crumbs .sep{color:var(--line-2)}
