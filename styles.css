@@ -439,3 +439,11 @@
     box-shadow:0 0 0 1px rgba(255,59,78,.12),0 20px 60px rgba(255,59,78,.16),0 0 40px rgba(255,59,78,.10)}
   .callout p strong{color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--display)}
   @media (max-width:560px){.callout p{padding:20px 18px;font-size:16px}}
+  /* ROTN lookbook pair: full edited poster on the left, product card stretched to match on the right */
+  .work.pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .work.pair .tile{grid-column:auto}
+  .work.pair .tile.poster{aspect-ratio:9/16}
+  .work.pair .tile.poster img{object-position:center top}
+  .work.pair .tile.fill-row{aspect-ratio:auto}
+  .work.pair .tile.fill-row img{background:#fff}
+  @media (max-width:560px){.work.pair{gap:10px}.work.pair .tile{padding:10px;min-height:0}.work.pair .tile .k{font-size:9px;letter-spacing:.1em}.work.pair .tile .t{font-size:12px;margin-top:2px}}
