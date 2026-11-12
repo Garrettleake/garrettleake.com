@@ -163,6 +163,7 @@ var state = null, sheet = null, busy = false, loadError = "";
 var scenario = "turn", alertTo = "both";
 var push = { ready: false, on: false };
 var adminView = false;
+var notifyState = "";
 var stuckWhich = "downstairs";
 var DEMO_PIN = "";
 var setupDone = store("setup") === "done";
@@ -311,6 +312,7 @@ var ICON_SHARE = '<svg class="shareicon" width="22" height="22" viewBox="0 0 24 
 function gicon(d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>"; }
 var GUIDE_ICONS = [
   gicon('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
+  gicon('<circle cx="5" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="19" cy="12" r="1.7" fill="currentColor"/>'),
   gicon('<path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/>'),
   gicon('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>'),
   LOGO
@@ -324,8 +326,9 @@ function setupScreen() {
 function guideScreen() {
   var steps = [
     "<b>Open this page in Safari.</b> It has to be Safari. If you opened the link inside another app, tap the compass icon to open it in Safari.",
-    "<b>Tap the Share button</b> " + ICON_SHARE + " at the bottom of the screen. It's the square with an arrow pointing up.",
-    "<b>Scroll down and tap Add to Home Screen.</b> Then tap Add in the top corner.",
+    "<b>Tap the three dots</b> at the bottom right of Safari.",
+    "<b>Tap Share</b> " + ICON_SHARE + " in the menu that opens.",
+    "<b>Tap Add to Home Screen, then tap Add.</b> If you don't see it in the list, tap the option that shows more actions, then scroll to Add to Home Screen.",
     "<b>Go to your Home Screen and open Robot Duty.</b> It looks and works like a normal app from there."
   ];
   return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card focus"><h3>Step 1 of 4</h3><h2>Welcome to Robot Duty. Let\'s get you set up.</h2><p>First, add this app to your Home Screen.</p><p class="muted">It takes about a minute. The app can only send you reminders once it\'s on your Home Screen.</p></div>' +
@@ -333,7 +336,11 @@ function guideScreen() {
     '<button class="btn primary" data-act="installed">I\'m done</button>';
 }
 function notifyScreen() {
-  return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card focus"><h3>Step 2 of 4</h3><h2>Turn on notifications</h2><p class="muted">This is how your robot reminders reach you. When your iPhone asks, tap <b>Allow</b>.</p><button class="btn primary big" data-act="obpush">Turn on notifications</button></div>';
+  var top = '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card focus"><h3>Step 2 of 4</h3>';
+  if (notifyState === "asked") return top + '<h2>Please tap Allow</h2><p class="muted">Your iPhone is asking if Robot Duty can send you notifications. Tap <b>Allow</b> on the pop-up.</p></div>';
+  if (notifyState === "allowed") return top + '<span class="pill good">Notifications are on</span><h2>Now tap Next</h2><p class="muted">The app will send a test notification to make sure it reaches this phone.</p><button class="btn primary big" data-act="obnext">Next</button></div>';
+  if (notifyState === "denied") return top + '<h2>Notifications are off</h2><p class="muted">The app can\'t remind you without them. Open the iPhone Settings app, tap Notifications, tap Robot Duty and turn on Allow Notifications. Then come back and try again.</p><button class="btn primary" data-act="obpush">Try again</button></div>';
+  return top + '<h2>Turn on notifications</h2><p class="muted">This is how your robot reminders reach you. Tap the button, then tap <b>Allow</b> when your iPhone asks.</p><button class="btn primary big" data-act="obpush">Turn on notifications</button></div>';
 }
 function testScreen() {
   return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card focus"><h3>Step 3 of 4</h3><h2>Now tap your test notification</h2><p>A test notification is on its way. It arrives a few seconds from now, so you have time to leave the app.</p>' +
@@ -392,15 +399,29 @@ function markSetup(kind) {
 function startTest() {
   setStep("test"); render();
   if (DEMO) setTimeout(showBanner, 4000);
-  else { var tries = 0; (function go() { var id = window.OneSignal && OneSignal.User && OneSignal.User.PushSubscription.id; if (id || tries++ > 10) return act({ action: "testpush", u: who, sub: id || null }); setTimeout(go, 500); })(); }
+  else { var tries = 0; (function go() { var id = window.OneSignal && OneSignal.User && OneSignal.User.PushSubscription.id; if (id || tries++ > 20) return act({ action: "testpush", u: who, sub: id || null }); setTimeout(go, 500); })(); }
 }
 function showBanner(force) {
   if (force !== true && (setupDone || step !== "test")) return;
   document.getElementById("banner").innerHTML = '<button class="banner" data-act="confirm"><span class="app">Robot Duty, demo notification</span><b>Test notification</b><span class="small">Tap here to continue.</span></button>';
 }
+var seenTok = {};
+function tapped(t) {
+  if (DEMO || !t || seenTok[t]) return; seenTok[t] = 1;
+  fetch(CONFIG.apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "tapped", t: t, by: who }) })
+    .then(function (r) { return r.json(); })
+    .then(function (s) { if (s.error) return; if (who) state = s; confirmNotif(); })
+    .catch(function () { delete seenTok[t]; });
+}
+function checkTapParam() {
+  var m = /[?&]t=([A-Za-z0-9]+)/.exec(location.search);
+  if (!m) return;
+  try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  tapped(m[1]);
+}
 function confirmNotif() {
   document.getElementById("banner").innerHTML = "";
-  if (setupDone) { markSetup("notif"); if (DEMO) { scenario = "turn"; render(); window.scrollTo(0, 0); toast("Notifications work. Thanks."); } return; }
+  if (setupDone) { if (!DEMO) { render(); toast("Notification confirmed."); return; } markSetup("notif"); if (DEMO) { scenario = "turn"; render(); window.scrollTo(0, 0); toast("Notifications work. Thanks."); } return; }
   if (step !== "test") return;
   store("notif", String(Date.now())); setStep("pick"); closeSheet(); render(); window.scrollTo(0, 0); toast("Notifications work. One last step.");
 }
@@ -642,7 +663,11 @@ document.addEventListener("click", function (e) {
   if (a === "pick") { who = b.dataset.u; store("who", who); state = null; var first = !setupDone; if (first) { setupDone = true; store("setup", "done"); } render(); load(); if (window.OneSignal && OneSignal.login) OneSignal.login(who);
     if (first) { markSetup("both"); if (DEMO) render(); window.scrollTo(0, 0); toast("You're all set, " + NAMES[who] + "."); } return; }
   if (a === "installed") { if (!DEMO && !standalone()) return toast("Almost there. Now open Robot Duty from your Home Screen."); setStep("notify"); render(); window.scrollTo(0, 0); return; }
-  if (a === "obpush") { if (DEMO) return startTest(); var pr = enablePush(); if (pr) pr.then(function () { if (push.on) startTest(); }); return; }
+  if (a === "obpush") { notifyState = "asked"; render();
+    if (DEMO) { setTimeout(function () { notifyState = "allowed"; render(); }, 1500); return; }
+    var pr = enablePush(); if (pr) pr.then(function () { notifyState = push.on ? "allowed" : "denied"; render(); }); else { notifyState = ""; render(); }
+    return; }
+  if (a === "obnext") return startTest();
   if (a === "retest") { closeSheet(); startTest(); return toast("Sent again."); }
   if (a === "confirm") return confirmNotif();
   if (a === "which") { stuckWhich = b.dataset.w; openSheet("stuck"); return; }
@@ -687,7 +712,7 @@ document.addEventListener("click", function (e) {
   if (a === "send") { var msg = document.getElementById("msg").value.trim(); if (!msg) return toast("Type your message first."); return act({ action: "alert", to: alertTo, message: msg }, "Alert sent."); }
   if (a === "push") return enablePush();
 });
-document.addEventListener("visibilitychange", function () { if (!document.hidden && who && !DEMO && !sheet) load(); });
+document.addEventListener("visibilitychange", function () { if (document.hidden) return; checkTapParam(); if (who && !DEMO && !sheet) load(); });
 
 /* ---------- notifications (only runs once the app is connected) ---------- */
 function initPush() {
@@ -697,7 +722,7 @@ function initPush() {
   OneSignalDeferred.push(function (OS) {
     return OS.init({ appId: CONFIG.oneSignalAppId, serviceWorkerPath: CONFIG.swPath, serviceWorkerParam: { scope: CONFIG.swScope } })
       .then(function () { return who ? OS.login(who) : null; })
-      .then(function () { OS.Notifications.addEventListener("click", function () { confirmNotif(); }); push.ready = true; push.on = !!(OS.Notifications.permission && OS.User.PushSubscription.optedIn); render(); });
+      .then(function () { OS.Notifications.addEventListener("click", function (ev) { var d = ev && ev.notification && ev.notification.additionalData; if (d && d.t) tapped(d.t); }); push.ready = true; push.on = !!(OS.Notifications.permission && OS.User.PushSubscription.optedIn); render(); });
   });
 }
 function enablePush() {
@@ -707,10 +732,11 @@ function enablePush() {
   }).catch(function () { toast("Couldn't turn on notifications."); });
 }
 
-if (!setupDone && step === "guide" && !DEMO && standalone()) setStep("pick");
+if (!setupDone && step === "guide" && !DEMO && standalone()) setStep("notify");
 render();
 if (who) load();
 initPush();
+checkTapParam();
 if (navigator.clearAppBadge) { try { navigator.clearAppBadge(); } catch (e) {} }
 </script>
 </body>
