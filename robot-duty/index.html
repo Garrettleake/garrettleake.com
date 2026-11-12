@@ -514,7 +514,8 @@ function adminCard() {
 }
 
 function statusOf(u) {
-  var p = state.people[u], d = p.duty;
+  var p = state.people[u], d = p.duty, st = (state.setup || {})[u] || {};
+  if (!st.installedAt) return { pill: "plain", label: "Not on the app yet", sub: "He still gets text reminders. His turns show here once he installs the app." };
   if (p.vacationUntil) return { pill: "info", label: "Vacation", sub: "Back " + fmtDate(p.vacationUntil) + "." };
   if (d.status === "done") return { pill: "good", label: "Done", sub: "Finished at " + fmtTime(d.doneAt) + "." };
   if (d.status === "pushed") return { pill: "warn", label: "Pushed", sub: "Moved to tomorrow. Push " + d.pushes + " of 2." };
