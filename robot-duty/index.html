@@ -239,6 +239,7 @@ function demoAct(a) {
   if (a.action === "dismissreq") { demoSetup[a.u].access = null; demoSetup[a.u].accessRequestedAt = null; saveDemo(); log("Garrett declined " + n + "'s request for admin access."); }
   if (a.action === "approve") { demoSetup[a.u].access = "approved"; saveDemo(); log("Garrett approved " + n + " for view-only admin access."); }
   if (a.action === "setpin") { demoSetup[a.u].pin = a.pin; demoSetup[a.u].pinSet = true; saveDemo(); log(n + " set his admin PIN."); }
+  if (a.action === "resetuser") { demoSetup[a.u] = {}; log("Garrett reset " + n + "'s record."); }
   if (a.action === "nudge") { demoSetup[a.u].lastNotifSentAt = Date.now(); log("Reminder sent to " + n + "."); }
   if (a.action === "testpush") { demoSetup[a.u].lastNotifSentAt = Date.now(); log("Test notification sent to " + n + "."); }
   if (a.action === "alert") {
@@ -382,7 +383,7 @@ function setupCard() {
       row("Two-week check-up", s.checkDue ? "Not tapped" : s.notifAt ? "Passed" : "Not yet") +
       (u === "garrett" ? "" : row("Admin access", s.access === "approved" ? (s.pinSet ? "View only" : "Approved, no PIN yet") : s.access === "requested" ? "Requested" : "None")) +
       (since ? row("Opened the app since then", since) : "") + "</div>";
-    if (s.installedAt) h += '<button class="btn ghost" data-act="test" data-u="' + u + '">Send a test notification</button>';
+    if (s.installedAt) h += '<div class="row2"><button class="btn ghost" data-act="test" data-u="' + u + '">Send a test notification</button><button class="btn ghost" data-act="resetuser" data-u="' + u + '">Reset this record</button></div>';
     h += "</div>";
   });
   return h + "</div>";
@@ -571,7 +572,7 @@ function adminScreen() {
   h += (ro ? "" : gvacCard()) + setupCard() + historyCard();
   h += '<h2 class="sec">Activity log</h2><div class="card">' + (state.log.length ? '<ul class="log">' + state.log.slice(0, 20).map(function (l) {
     return "<li><time>" + fmtTime(l.t) + "</time><span>" + esc(l.text) + "</span></li>"; }).join("") + "</ul>" : '<p class="muted small">Nothing yet today.</p>') + "</div>";
-  if (ro) h = h.replace(/<button[^>]*data-act="(nudge|markdone|test|swapclear|problemdone|stuckclear)"[^>]*>[^<]*<\/button>/g, "").replace(/<div class="row2"><\/div>/g, "");
+  if (ro) h = h.replace(/<button[^>]*data-act="(nudge|markdone|test|resetuser|swapclear|problemdone|stuckclear)"[^>]*>[^<]*<\/button>/g, "").replace(/<div class="row2"><\/div>/g, "");
   return h + '<button class="btn line" data-act="adminback">Close admin panel</button>';
 }
 
@@ -670,6 +671,7 @@ document.addEventListener("click", function (e) {
   if (a === "obnext") return startTest();
   if (a === "retest") { closeSheet(); startTest(); return toast("Sent again."); }
   if (a === "confirm") return confirmNotif();
+  if (a === "resetuser") return act({ action: "resetuser", u: b.dataset.u }, NAMES[b.dataset.u] + "'s record was reset.");
   if (a === "which") { stuckWhich = b.dataset.w; openSheet("stuck"); return; }
   if (a === "stuck") return act({ action: "stuck", u: b.dataset.u, which: stuckWhich }, NAMES[b.dataset.u] + " will get a notification.");
   if (a === "stuckclear") return act({ action: "stuckclear", u: who }, who === "garrett" ? "Cleared." : "Thanks! Garrett can see it is fixed.");
@@ -720,7 +722,7 @@ function initPush() {
   window.OneSignalDeferred = [];
   var s = document.createElement("script"); s.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; s.defer = true; document.head.appendChild(s);
   OneSignalDeferred.push(function (OS) {
-    return OS.init({ appId: CONFIG.oneSignalAppId, serviceWorkerPath: CONFIG.swPath, serviceWorkerParam: { scope: CONFIG.swScope } })
+    return OS.init({ appId: CONFIG.oneSignalAppId, welcomeNotification: { disable: true }, serviceWorkerPath: CONFIG.swPath, serviceWorkerParam: { scope: CONFIG.swScope } })
       .then(function () { return who ? OS.login(who) : null; })
       .then(function () { OS.Notifications.addEventListener("click", function (ev) { var d = ev && ev.notification && ev.notification.additionalData; if (d && d.t) tapped(d.t); }); push.ready = true; push.on = !!(OS.Notifications.permission && OS.User.PushSubscription.optedIn); render(); });
   });
