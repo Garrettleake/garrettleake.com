@@ -714,7 +714,7 @@ document.addEventListener("click", function (e) {
   if (a === "send") { var msg = document.getElementById("msg").value.trim(); if (!msg) return toast("Type your message first."); return act({ action: "alert", to: alertTo, message: msg }, "Alert sent."); }
   if (a === "push") return enablePush();
 });
-document.addEventListener("visibilitychange", function () { if (document.hidden) return; checkTapParam(); if (who && !DEMO && !sheet) load(); });
+document.addEventListener("visibilitychange", function () { if (document.hidden) return; clearBadge(); checkTapParam(); if (who && !DEMO && !sheet) load(); });
 
 /* ---------- notifications (only runs once the app is connected) ---------- */
 function initPush() {
@@ -739,7 +739,11 @@ render();
 if (who) load();
 initPush();
 checkTapParam();
-if (navigator.clearAppBadge) { try { navigator.clearAppBadge(); } catch (e) {} }
+function clearBadge() {
+  try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) {}
+  try { if (window.caches) caches.open("rd-badge").then(function (c) { return c.put("https://garrettleake.com/robot-duty/__badge", new Response("0")); }).catch(function () {}); } catch (e) {}
+}
+clearBadge();
 </script>
 </body>
 </html>
