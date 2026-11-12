@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Robot Duty">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B67C2">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Robot Duty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one phone-width column; the one thing to do today sits in a single tall card with one big button. */
+:root{
+  --bg:#EDF1F4; --surface:#FFFFFF; --ink:#13202A; --muted:#5A6B78; --line:#D9E0E6;
+  --accent:#0B67C2; --accent-ink:#FFFFFF; --accent-soft:#E3EEF9;
+  --good:#18794E; --good-soft:#E0F2E9; --warn:#9A5B0C; --warn-soft:#FBEFD9; --bad:#B4322F; --bad-soft:#FBE6E4;
+  --display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:20px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0D141A; --surface:#172029; --ink:#E9EEF2; --muted:#96A6B3; --line:#2A3641;
+    --accent:#4CA2F2; --accent-ink:#06121D; --accent-soft:#16304A;
+    --good:#56C891; --good-soft:#143326; --warn:#E8AE55; --warn-soft:#3A2C12; --bad:#F08783; --bad-soft:#3F1D1C;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0D141A; --surface:#172029; --ink:#E9EEF2; --muted:#96A6B3; --line:#2A3641;
+  --accent:#4CA2F2; --accent-ink:#06121D; --accent-soft:#16304A;
+  --good:#56C891; --good-soft:#143326; --warn:#E8AE55; --warn-soft:#3A2C12; --bad:#F08783; --bad-soft:#3F1D1C;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:14px;
+  padding:calc(18px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-0.01em}
+h1{font-size:30px;line-height:1.1}
+h2{font-size:25px;line-height:1.15}
+h3{font-size:14px;font-family:var(--body);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:4px 4px 2px}
+.top .date{font-size:15px;color:var(--muted);font-weight:500}
+.card{background:var(--surface);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--line)}
+.card.focus{border-color:transparent;box-shadow:0 1px 0 var(--line),0 12px 30px -18px rgba(10,40,70,.45)}
+.todo{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.todo li{display:flex;gap:10px;align-items:flex-start}
+.todo li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:9px}
+.note{border-radius:14px;padding:12px 14px;font-size:15px;font-weight:500}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.note.bad{background:var(--bad-soft);color:var(--bad)}
+.note.good{background:var(--good-soft);color:var(--good)}
+.logo{width:36px;height:36px;vertical-align:-8px;margin-right:10px}
+.note.info{background:var(--accent-soft);color:var(--accent)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 11px;font-size:14px;font-weight:700;white-space:nowrap}
+.card>.pill{align-self:flex-start}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.info{background:var(--accent-soft);color:var(--accent)}
+.pill.plain{background:var(--bg);color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;border-radius:16px;padding:12px 16px;font-weight:700;font-size:17px;text-align:center;transition:transform .08s ease}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.big{min-height:72px;font-size:24px;font-family:var(--display);border-radius:20px}
+.btn.ghost{background:var(--bg);color:var(--ink)}
+.btn.line{border:1.5px solid var(--line);background:transparent}
+.btn.danger{background:var(--bad);color:var(--surface)}
+.btn.sm{width:auto;min-height:40px;font-size:14px;padding:8px 20px;align-self:center}
+.btn[disabled]{opacity:.45;cursor:default}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row3 .btn{min-height:58px;font-size:15px;line-height:1.2;padding:8px 6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row2 .btn{font-size:15px;line-height:1.2;min-height:56px}
+.linkbtn{color:var(--accent);font-weight:600;font-size:15px;padding:6px 2px;text-decoration:underline;text-underline-offset:3px}
+.done-mark{width:64px;height:64px;border-radius:50%;background:var(--good-soft);color:var(--good);display:flex;align-items:center;justify-content:center}
+.quote{border-left:4px solid var(--accent);padding:4px 0 4px 14px;font-size:18px;font-weight:500}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0;border-radius:12px;font-size:13px;font-weight:600;color:var(--muted);border:1.5px solid transparent}
+.day .who{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;background:var(--bg);color:var(--ink)}
+.day.me .who{background:var(--accent);color:var(--accent-ink)}
+.day.today{border-color:var(--accent);color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--muted)}
+.person{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-top:1px solid var(--line)}
+.person:first-of-type{border-top:0;padding-top:0}
+.person .head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.person .name{font-weight:700;font-size:19px}
+.person .btn{min-height:44px;font-size:15px}
+textarea,input[type=time],input[type=date],input[type=password]{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;width:100%}
+textarea{min-height:92px;resize:vertical}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg);border-radius:14px;padding:4px;gap:4px}
+.seg button{border-radius:10px;min-height:40px;font-weight:600;font-size:15px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.log{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:15px}
+.log li{display:grid;grid-template-columns:74px 1fr;gap:10px}
+.log time{color:var(--muted);font-variant-numeric:tabular-nums}
+.who-list{display:flex;flex-direction:column;gap:10px}
+.who-list .btn{justify-content:space-between;min-height:68px;font-size:20px;padding:12px 20px}
+.who-list .btn span{font-size:14px;font-weight:500;color:var(--muted)}
+.scrim{position:fixed;inset:0;background:rgba(8,16,24,.5);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{background:var(--surface);width:100%;max-width:460px;border-radius:24px 24px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;max-height:92%;overflow:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border-radius:999px;border:1.5px solid var(--line);padding:9px 14px;font-weight:600;font-size:15px}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:999px;font-weight:600;font-size:15px;z-index:20;max-width:calc(100% - 32px);text-align:center}
+.demo{border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px}
+.demo .chips .chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.err{color:var(--bad);font-weight:600;font-size:15px}
+.step{display:flex;gap:14px;align-items:flex-start}
+.step p{flex:1}
+.stepnum{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700}
+.stepicon{flex:none;width:52px;height:52px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.stepicon svg{width:30px;height:30px}
+.stepicon .logo{width:52px;height:52px;margin:0;vertical-align:0}
+.shareicon{display:inline-block;vertical-align:-5px;color:var(--accent)}
+.banner{position:fixed;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:calc(100% - 20px);max-width:440px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:0 14px 34px -12px rgba(0,0,0,.45);z-index:30;text-align:left;display:flex;flex-direction:column;gap:2px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:15px}
+.kv span{color:var(--muted)}
+.kv b{font-weight:600;text-align:right}
+.sec{font-size:21px;padding:12px 4px 0}
+.hist{display:flex;gap:8px 6px;flex-wrap:wrap}
+.hcell{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:32px;color:var(--muted)}
+.hcell small{font-size:11px;line-height:1.15;font-weight:600;font-variant-numeric:tabular-nums}
+.hcell small.dow{color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.03em;margin-top:3px}
+.hist i{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;font-size:13px}
+.hist .done{background:var(--good-soft);color:var(--good)}
+.hist .pushed{background:var(--warn-soft);color:var(--warn)}
+.hist .missed{background:var(--bad-soft);color:var(--bad)}
+.banner .app{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.btn{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="overlay"></div>
+<div id="banner"></div>
+<script>
+/* ---------- settings (filled in when the app is connected) ---------- */
+var CONFIG = { apiUrl: "https://script.google.com/macros/s/AKfycby-zGxFrLDmWnyIyujELGXDpvP7E5vskY3RsTAuEcZU9Y0s4bSwHD50dC7reKyf1tkbhQ/exec", oneSignalAppId: "b9d7c00c-53da-415f-a407-2dd680c35612", swPath: "/robot-duty/OneSignalSDKWorker.js", swScope: "/robot-duty/" };
+var DEMO = !CONFIG.apiUrl;
+
+var NAMES = { garrett: "Garrett", brandon: "Brandon", shawn: "Shawn" };
+var OWNER = { 0: "garrett", 1: "garrett", 2: "brandon", 3: "shawn", 4: "brandon", 5: "shawn", 6: "garrett" };
+var DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+var DAYS_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+var who = store("who") || null;
+var pin = store("pin") || "";
+var state = null, sheet = null, busy = false, loadError = "";
+var scenario = "turn", alertTo = "both";
+var push = { ready: false, on: false };
+var adminView = false;
+var stuckWhich = "downstairs";
+var DEMO_PIN = "";
+var setupDone = store("setup") === "done";
+var step = store("step") || "guide";
+function freshDemo() { return { brandon: { installedAt: Date.now() - 2 * 864e5, notifAt: Date.now() - 2 * 864e5, lastOpenAt: Date.now() - 5 * 36e5, lastNotifSentAt: Date.now() - 3 * 36e5, lastTapAt: Date.now() - 2 * 864e5 }, shawn: { installedAt: Date.now() - 864e5, notifAt: null, lastOpenAt: Date.now() - 864e5, lastNotifSentAt: Date.now() - 3 * 36e5, lastTapAt: null }, garrett: {}, swap: null, gvac: null, problems: [], xlog: [] }; }
+var demoSetup = (function () { try { return JSON.parse(store("demo_setup3")); } catch (e) { return null; } })() || freshDemo();
+function saveDemo() { store("demo_setup3", JSON.stringify(demoSetup)); }
+function standalone() { return !!(navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches)); }
+function setStep(s) { step = s; store("step", s); }
+function fmtWhen(t) { var d = new Date(t); return MONTHS[d.getMonth()] + " " + d.getDate() + ", " + fmtTime(d); }
+
+/* ---------- small helpers ---------- */
+function store(k, v) {
+  try { if (v === undefined) return localStorage.getItem("rd_" + k); if (v === null) localStorage.removeItem("rd_" + k); else localStorage.setItem("rd_" + k, v); } catch (e) {}
+  return null;
+}
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function pad(n) { return (n < 10 ? "0" : "") + n; }
+function fmtTime(d) { d = new Date(d); var h = d.getHours(), m = d.getMinutes(); return ((h % 12) || 12) + ":" + pad(m) + " " + (h < 12 ? "AM" : "PM"); }
+function fmtHM(hm) { var p = hm.split(":"), h = +p[0]; return ((h % 12) || 12) + ":" + p[1] + " " + (h < 12 ? "AM" : "PM"); }
+function fmtDate(iso) { var p = iso.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]); return DAYS[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate(); }
+function isoDate(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function other(u) { return u === "brandon" ? "shawn" : "brandon"; }
+function nextTurn(u) {
+  var d = new Date().getDay();
+  for (var i = 1; i <= 7; i++) { var k = (d + i) % 7; if (OWNER[k] === u) return i === 1 ? "tomorrow" : DAYS_LONG[k]; }
+  return "";
+}
+var LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" style="fill:var(--accent)"/><text x="32" y="43" text-anchor="middle" font-size="29" font-weight="700" letter-spacing="-1" style="fill:var(--accent-ink);font-family:var(--display)">RD</text></svg>';
+var ICON_CHECK = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+/* ---------- demo data (used until the app is connected) ---------- */
+function blankPerson() { return { duty: { due: false, status: "none", missed: 0, pushes: 0, remindAt: null, doneAt: null }, vacationUntil: null, alert: null }; }
+function demoState(sc) {
+  var s = { today: isoDate(new Date()), people: { brandon: blankPerson(), shawn: blankPerson() }, setup: demoSetup, log: (demoSetup.xlog || []).slice() };
+  var me = who === "shawn" ? "shawn" : "brandon";
+  demoSetup.brandon.checkDue = false; demoSetup.shawn.checkDue = false;
+  if (sc === "check") demoSetup[me].checkDue = true;
+  s.history = { brandon: pastTurns("brandon", ["done", "done", "missed", "done", "pushed", "done", "done", "missed"]), shawn: pastTurns("shawn", ["done", "done", "done", "pushed", "done", "done", "missed", "done"]) };
+  function due(u, missed) { s.people[u].duty = { due: true, status: "pending", missed: missed || 0, pushes: missed || 0, remindAt: null, doneAt: null }; }
+  if (sc === "turn" || sc === "alert") due(me);
+  if (sc === "missed") { due("brandon", 1); due("shawn", 0); s.log.push({ t: Date.now() - 36e5, text: "Brandon didn't finish his robot day, so it moved to today." }); }
+  if (sc === "alert") {
+    var a = { message: "Trash goes out tonight. Please bring the bins back in tomorrow morning.", sentAt: Date.now() - 18e5, readAt: null };
+    s.people.brandon.alert = JSON.parse(JSON.stringify(a)); s.people.shawn.alert = JSON.parse(JSON.stringify(a));
+    s.log.push({ t: a.sentAt, text: "Group chat alert sent to Brandon and Shawn." });
+  }
+  s.swap = demoSetup.swap; s.gvac = demoSetup.gvac; s.stuck = demoSetup.stuck || null; s.problems = demoSetup.problems || []; applySwap(s);
+  return s;
+}
+function pastTurns(u, st) {
+  var out = [], d = new Date(); d.setDate(d.getDate() - 1);
+  while (out.length < st.length) { if (OWNER[d.getDay()] === u) out.unshift(isoDate(d)); d.setDate(d.getDate() - 1); }
+  return out.map(function (x, i) { return { d: x, s: st[i] }; });
+}
+function dueDuty() { return { due: true, status: "pending", missed: 0, pushes: 0, remindAt: null, doneAt: null }; }
+function applySwap(s) {
+  var sw = demoSetup.swap; if (!sw) return;
+  s.people[sw.from].duty = sw.status === "yes" ? blankPerson().duty : dueDuty();
+  s.people[sw.to].duty = sw.status === "yes" ? dueDuty() : blankPerson().duty;
+}
+function demoAct(a) {
+  var s = state, p = a.u ? s.people[a.u] : null, n = a.u ? NAMES[a.u] : "";
+  function log(t) { var e = { t: Date.now(), text: t }; s.log.unshift(e); demoSetup.xlog = [e].concat(demoSetup.xlog || []).slice(0, 30); }
+  if (a.action === "done") { p.duty.status = "done"; p.duty.doneAt = Date.now(); p.duty.remindAt = null; log(n + " finished the robots."); }
+  if (a.action === "undo") { p.duty.status = "pending"; p.duty.doneAt = null; log(n + " undid DONE."); }
+  if (a.action === "later") { p.duty.remindAt = a.time; log(n + " asked for a reminder at " + fmtHM(a.time) + "."); }
+  if (a.action === "tomorrow") { p.duty.pushes += 1; p.duty.status = "pushed"; p.duty.remindAt = null; log(n + " pushed his robot day to tomorrow. Push " + p.duty.pushes + " of 2."); }
+  if (a.action === "vacation") { p.vacationUntil = a.date; p.duty.status = "none"; p.duty.due = false; log(n + " is on vacation until " + fmtDate(a.date) + "."); }
+  if (a.action === "back") { p.vacationUntil = null; log(n + " is back from vacation."); }
+  if (a.action === "read") { p.alert.readAt = Date.now(); log(n + " read the group chat message."); }
+  if (a.action === "request") { demoSetup[a.u].access = "requested"; demoSetup[a.u].accessRequestedAt = Date.now(); saveDemo(); log(n + " requested access to the admin panel."); }
+  if (a.action === "dismissreq") { demoSetup[a.u].access = null; demoSetup[a.u].accessRequestedAt = null; saveDemo(); log("Garrett declined " + n + "'s request for admin access."); }
+  if (a.action === "approve") { demoSetup[a.u].access = "approved"; saveDemo(); log("Garrett approved " + n + " for view-only admin access."); }
+  if (a.action === "setpin") { demoSetup[a.u].pin = a.pin; demoSetup[a.u].pinSet = true; saveDemo(); log(n + " set his admin PIN."); }
+  if (a.action === "nudge") { demoSetup[a.u].lastNotifSentAt = Date.now(); log("Reminder sent to " + n + "."); }
+  if (a.action === "testpush") { demoSetup[a.u].lastNotifSentAt = Date.now(); log("Test notification sent to " + n + "."); }
+  if (a.action === "alert") {
+    var to = a.to === "both" ? ["brandon", "shawn"] : [a.to];
+    to.forEach(function (u) { demoSetup[u].lastNotifSentAt = Date.now(); s.people[u].alert = { message: a.message, sentAt: Date.now(), readAt: null }; });
+    log("Group chat alert sent to " + to.map(function (u) { return NAMES[u]; }).join(" and ") + ".");
+  }
+  if (a.action === "swapreq") { demoSetup.swap = { from: a.u, to: other(a.u), status: "pending", at: Date.now() }; log(n + " asked " + NAMES[other(a.u)] + " to swap days."); }
+  if (a.action === "swapyes") { demoSetup.swap.status = "yes"; log(n + " said yes to swapping days with " + NAMES[demoSetup.swap.from] + "."); }
+  if (a.action === "swapno") { demoSetup.swap.status = "no"; log(n + " can't swap days with " + NAMES[demoSetup.swap.from] + ". Neither of them can do the robots today."); }
+  if (a.action === "swapclear") { demoSetup.swap = null; }
+  if (a.action === "problem") { demoSetup.problems = [{ u: a.u, text: a.text, at: Date.now() }].concat(demoSetup.problems || []); log(n + " reported a problem: " + a.text); }
+  if (a.action === "problemdone") { demoSetup.problems.splice(a.i, 1); }
+  if (a.action === "gvac") { demoSetup.gvac = a.date; log("Garrett is on vacation until " + fmtDate(a.date) + "."); }
+  if (a.action === "gvacoff") { demoSetup.gvac = null; log("Garrett is back from vacation."); }
+  if (a.action === "stuck") { demoSetup.stuck = { u: a.u, which: a.which, at: Date.now() }; demoSetup[a.u].lastNotifSentAt = Date.now(); log("Garrett told " + n + " the " + a.which + " robot is stuck."); }
+  if (a.action === "stuckclear") { demoSetup.stuck = null; log(a.u === "garrett" ? "Garrett cleared the stuck robot alert." : n + " fixed the stuck robot."); }
+  if (a.action === "covered") { log(n + " ran the robots for Garrett."); }
+  s.swap = demoSetup.swap; s.gvac = demoSetup.gvac; s.stuck = demoSetup.stuck || null; s.problems = demoSetup.problems || [];
+  if (/^swap/.test(a.action)) applySwap(s);
+  saveDemo();
+  return s;
+}
+
+/* ---------- talking to the server ---------- */
+function load() {
+  if (DEMO) { if (who && setupDone) demoSetup[who].lastOpenAt = Date.now(); state = demoState(scenario); render(); return; }
+  fetch(CONFIG.apiUrl + "?u=" + encodeURIComponent(who) + "&pin=" + encodeURIComponent(pin))
+    .then(function (r) { return r.json(); })
+    .then(function (s) { if (s.error) throw new Error(s.error); state = s; loadError = ""; render(); })
+    .catch(function (e) { loadError = "Couldn't load. Check your connection and pull down to try again."; if (/pin/i.test(e.message)) { pin = ""; store("pin", null); loadError = "That PIN didn't work."; if (adminView) { adminView = false; toast(loadError); } } render(); });
+}
+function act(a, msg) {
+  if (busy) return; a.by = who; a.pin = pin;
+  if (DEMO) { state = demoAct(a); closeSheet(); render(); if (msg) toast(msg); return; }
+  busy = true;
+  fetch(CONFIG.apiUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(a) })
+    .then(function (r) { return r.json(); })
+    .then(function (s) { busy = false; if (s.error) throw new Error(s.error); state = s; closeSheet(); render(); if (msg) toast(msg); })
+    .catch(function () { busy = false; toast("That didn't go through. Try again."); });
+}
+
+/* ---------- screens ---------- */
+function render() {
+  var el = document.getElementById("app"), h = "";
+  if (!setupDone) h = setupScreen();
+  else if (!who) h = pickScreen();
+  else if (!state) h = '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card"><p class="muted">' + (loadError ? esc(loadError) : "Loading...") + "</p></div>";
+  else h = adminView ? adminScreen() : who === "garrett" ? garrettHome() : (state.setup && state.setup[who] && state.setup[who].checkDue ? checkScreen() : roommateScreen());
+  if (DEMO) h += demoPanel();
+  el.innerHTML = h;
+}
+function topBar(name) {
+  var d = new Date();
+  return '<div class="top"><h1>' + LOGO + esc(name) + '</h1><span class="date">' + DAYS_LONG[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate() + "</span></div>";
+}
+function pickScreen() {
+  return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card">' + (setupDone ? "" : "<h3>Step 4 of 4</h3>") + '<h2>Who are you?</h2><p class="muted">Pick your name once. The app remembers it.</p><div class="who-list">' +
+    ["brandon", "shawn", "garrett"].map(function (u) {
+      var days = u === "brandon" ? "Tue, Thu" : u === "shawn" ? "Wed, Fri" : "Sat, Sun, Mon";
+      return '<button class="btn ghost" data-act="pick" data-u="' + u + '">I am ' + NAMES[u] + "<span>" + days + "</span></button>";
+    }).join("") + "</div></div>";
+}
+function pinScreen() {
+  return topBar("Garrett") + '<div class="card"><h2>Enter your PIN</h2><p class="muted">Only you can send alerts and see everyone\'s status.</p><label class="small muted" for="pin">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="off">' +
+    (loadError ? '<p class="err">' + esc(loadError) + "</p>" : "") + '<button class="btn primary" data-act="pin">Continue</button><button class="linkbtn" data-act="switch">I\'m not Garrett</button></div>';
+}
+
+/* ---------- first-time setup ---------- */
+var ICON_SHARE = '<svg class="shareicon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+function gicon(d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>"; }
+var GUIDE_ICONS = [
+  gicon('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
+  gicon('<path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/>'),
+  gicon('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>'),
+  LOGO
+];
+function setupScreen() {
+  if (step === "guide") return guideScreen();
+  if (step === "notify") return notifyScreen();
+  if (step === "test") return testScreen();
+  return pickScreen();
+}
+function guideScreen() {
+  var steps = [
+    "<b>Open this page in Safari.</b> It has to be Safari. If you opened the link inside another app, tap the compass icon to open it in Safari.",
+    "<b>Tap the Share button</b> " + ICON_SHARE + " at the bottom of the screen. It's the square with an arrow pointing up.",
+    "<b>Scroll down and tap Add to Home Screen.</b> Then tap Add in the top corner.",
+    "<b>Go to your Home Screen and open Robot Duty.</b> It looks and works like a normal app from there."
+  ];
+  return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card focus"><h3>Step 1 of 4</h3><h2>Welcome to Robot Duty. Let\'s get you set up.</h2><p>First, add this app to your Home Screen.</p><p class="muted">It takes about a minute. The app can only send you reminders once it\'s on your Home Screen.</p></div>' +
+    steps.map(function (s, i) { return '<div class="card"><div class="step"><span class="stepnum">' + (i + 1) + "</span><p>" + s + '</p><span class="stepicon">' + GUIDE_ICONS[i] + "</span></div></div>"; }).join("") +
+    '<button class="btn primary" data-act="installed">I\'m done</button>';
+}
+function notifyScreen() {
+  return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card focus"><h3>Step 2 of 4</h3><h2>Turn on notifications</h2><p class="muted">This is how your robot reminders reach you. When your iPhone asks, tap <b>Allow</b>.</p><button class="btn primary big" data-act="obpush">Turn on notifications</button></div>';
+}
+function testScreen() {
+  return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card focus"><h3>Step 3 of 4</h3><h2>Now tap your test notification</h2><p>A test notification is on its way. It arrives a few seconds from now, so you have time to leave the app.</p>' +
+    '<ul class="todo"><li>Swipe out of the app to your Home Screen</li><li>Tap the Robot Duty notification when it shows up</li></ul><p class="muted small">Tapping it brings you back here for the last step.</p>' +
+    (DEMO ? '<p class="note info">Demo: a pretend notification drops down from the top of this screen. On a real phone it is a real notification.</p>' : "") +
+    '<button class="btn ghost" data-act="retest">Send it again</button><button class="linkbtn" data-act="sheet" data-sheet="nohelp" style="align-self:flex-start">It never showed up</button></div>';
+}
+function checkScreen() {
+  return topBar(NAMES[who]) + '<div class="card focus"><span class="pill warn">Notification check</span><h2>Let\'s make sure your notifications still work</h2><p class="muted">You didn\'t tap the last check-up notification, so the app needs to test this phone again before you can continue.</p>' +
+    '<ul class="todo"><li>Tap the button below</li><li>Swipe out of the app to your Home Screen</li><li>Tap the Robot Duty notification when it shows up</li></ul>' +
+    (DEMO ? '<p class="note info">Demo: a pretend notification drops down from the top of this screen after about 4 seconds.</p>' : "") +
+    '<button class="btn primary big" data-act="checktest">Send my test notification</button><button class="linkbtn" data-act="sheet" data-sheet="nohelp" style="align-self:flex-start">It never showed up</button></div>';
+}
+function historyCard() {
+  var mark = { done: "✓", pushed: "›", missed: "✕" }, hist = state.history || {};
+  var h = '<h2 class="sec">Last 4 weeks</h2><div class="card"><p class="small muted">Each square is one robot turn, with its day underneath. Oldest first.' + (DEMO ? " Example data." : "") + "</p>";
+  ["brandon", "shawn"].forEach(function (u) {
+    var t = hist[u] || [], n = { done: 0, pushed: 0, missed: 0 };
+    t.forEach(function (x) { n[x.s]++; });
+    h += '<div class="person"><div class="head"><span class="name">' + NAMES[u] + '</span><span class="small muted">' + n.done + " done, " + n.pushed + " pushed, " + n.missed + ' missed</span></div><div class="hist">' +
+      (t.length ? t.map(function (x) { var q = x.d.split("-"), dt = new Date(+q[0], +q[1] - 1, +q[2]);
+        return '<span class="hcell"><i class="' + x.s + '" title="' + x.s + '">' + mark[x.s] + '</i><small class="dow">' + DAYS[dt.getDay()] + "</small><small>" + (dt.getMonth() + 1) + "/" + dt.getDate() + "</small></span>"; }).join("") : '<span class="small muted">No turns yet.</span>') + "</div></div>";
+  });
+  return h + '<div class="legend"><span>✓ Done</span><span>› Pushed to the next day</span><span>✕ Missed</span></div></div>';
+}
+function setupCard() {
+  var h = '<h2 class="sec">Phones and notifications</h2><div class="card"><p class="small muted">What each phone has done: installed the app, tapped notifications, opened the app.</p>';
+  function row(k, v) { return "<span>" + k + "</span><b>" + v + "</b>"; }
+  ["brandon", "shawn", "garrett"].forEach(function (u) {
+    var s = (state.setup || {})[u] || {};
+    var since = s.lastNotifSentAt ? (s.lastOpenAt && s.lastOpenAt > s.lastNotifSentAt ? "Yes" : "No") : "";
+    h += '<div class="person"><div class="head"><span class="name">' + NAMES[u] + '</span><span class="pill ' + (s.checkDue ? "warn" : s.notifAt ? "good" : s.installedAt ? "warn" : "bad") + '">' +
+      (s.checkDue ? "Check-up not tapped" : s.notifAt ? "All set" : s.installedAt ? "Notifications not confirmed" : "Not installed") + '</span></div><div class="kv">' +
+      row("App installed", s.installedAt ? fmtWhen(s.installedAt) : "No") +
+      row("Notifications confirmed", s.notifAt ? fmtWhen(s.notifAt) : "Not yet") +
+      row("Last opened the app", s.lastOpenAt ? fmtWhen(s.lastOpenAt) : "Never") +
+      row("Last notification sent", s.lastNotifSentAt ? fmtWhen(s.lastNotifSentAt) : "None yet") +
+      row("Last notification tapped", s.lastTapAt ? fmtWhen(s.lastTapAt) : "Never") +
+      row("Two-week check-up", s.checkDue ? "Not tapped" : s.notifAt ? "Passed" : "Not yet") +
+      (u === "garrett" ? "" : row("Admin access", s.access === "approved" ? (s.pinSet ? "View only" : "Approved, no PIN yet") : s.access === "requested" ? "Requested" : "None")) +
+      (since ? row("Opened the app since then", since) : "") + "</div>";
+    if (s.installedAt) h += '<button class="btn ghost" data-act="test" data-u="' + u + '">Send a test notification</button>';
+    h += "</div>";
+  });
+  return h + "</div>";
+}
+function markSetup(kind) {
+  if (!who) return;
+  if (!DEMO) return act({ action: "setup", kind: kind, u: who, notifAt: +store("notif") || null });
+  var s = demoSetup[who], now = Date.now();
+  if (kind === "both" && !s.installedAt) s.installedAt = now;
+  s.notifAt = now; s.lastTapAt = now; s.lastOpenAt = now; s.checkDue = false;
+  saveDemo();
+  if (state) { state.setup = demoSetup; state.log.unshift({ t: now, text: NAMES[who] + (kind === "both" ? " installed the app and tapped the test notification." : " tapped a notification.") }); }
+}
+function startTest() {
+  setStep("test"); render();
+  if (DEMO) setTimeout(showBanner, 4000);
+  else { var tries = 0; (function go() { var id = window.OneSignal && OneSignal.User && OneSignal.User.PushSubscription.id; if (id || tries++ > 10) return act({ action: "testpush", u: who, sub: id || null }); setTimeout(go, 500); })(); }
+}
+function showBanner(force) {
+  if (force !== true && (setupDone || step !== "test")) return;
+  document.getElementById("banner").innerHTML = '<button class="banner" data-act="confirm"><span class="app">Robot Duty, demo notification</span><b>Test notification</b><span class="small">Tap here to continue.</span></button>';
+}
+function confirmNotif() {
+  document.getElementById("banner").innerHTML = "";
+  if (setupDone) { markSetup("notif"); if (DEMO) { scenario = "turn"; render(); window.scrollTo(0, 0); toast("Notifications work. Thanks."); } return; }
+  if (step !== "test") return;
+  store("notif", String(Date.now())); setStep("pick"); closeSheet(); render(); window.scrollTo(0, 0); toast("Notifications work. One last step.");
+}
+
+function roommateScreen() {
+  var p = state.people[who], o = state.people[other(who)], d = p.duty, h = topBar(NAMES[who]);
+  h += stuckCard() + gvacNote() + swapCard();
+  h += '<div class="card focus">';
+  if (p.vacationUntil) {
+    h += '<span class="pill info">On vacation</span><h2>Reminders are paused</h2><p class="muted">You\'re off robot duty until ' + fmtDate(p.vacationUntil) + '. Garrett is covering your days.</p><button class="btn ghost" data-act="back">I\'m back early</button>';
+  } else if (d.status === "done") {
+    h += '<div class="done-mark">' + ICON_CHECK + '</div><h2>Done. Thanks!</h2><p class="muted">Marked done at ' + fmtTime(d.doneAt) + '. No more reminders today.</p><button class="linkbtn" data-act="undo" style="align-self:flex-start">Tapped it by mistake? Undo</button>';
+  } else if (d.status === "pushed") {
+    h += '<span class="pill warn">Push ' + d.pushes + ' of 2 used</span><h2>Moved to tomorrow</h2><p class="muted">No more reminders today. Your robot day starts again tomorrow.</p><button class="btn ghost" data-act="done">I did it today after all</button>';
+  } else if (d.due) {
+    h += d.missed === 2 ? '<span class="pill bad">Missed 2 days in a row</span><h2>Please get the robots done today</h2>'
+      : d.missed === 1 ? '<span class="pill warn">Missed yesterday</span><h2>Today is your robot day</h2>'
+      : '<span class="pill info">Your turn</span><h2>Today is your robot day</h2>';
+    h += '<ul class="todo"><li>Clean both robots, upstairs and downstairs</li><li>Fill them both with water</li></ul>';
+    if (o.duty.due && (o.duty.missed > 0 || o.duty.pushes > 0) && d.missed === 0) h += '<p class="note warn">' + NAMES[other(who)] + " missed his robot day yesterday. Make sure both robots are fully charged in the app before you run them.</p>";
+    if (d.remindAt) h += '<p class="note info">Reminder set for ' + fmtHM(d.remindAt) + ".</p>";
+    h += '<button class="btn primary big" data-act="done">' + ICON_CHECK + 'Done</button>';
+    h += '<div class="row3"><button class="btn ghost" data-act="sheet" data-sheet="later">Remind me later</button>' +
+      '<button class="btn ghost" data-act="sheet" data-sheet="tomorrow"' + (d.pushes >= 2 ? " disabled" : "") + ">Do it tomorrow</button>" +
+      '<button class="btn ghost" data-act="sheet" data-sheet="vacation">I\'m on vacation</button></div>';
+    if (d.pushes >= 2) h += '<p class="small muted">You\'ve moved this twice already. If you\'re away, tap I\'m on vacation.</p>';
+    if (!state.swap && !o.vacationUntil) h += '<button class="linkbtn" data-act="sheet" data-sheet="swap" style="align-self:center;font-size:13px">Request to swap days with ' + NAMES[other(who)] + "</button>";
+  } else {
+    h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">Your next turn is ' + nextTurn(who) + '.</p><button class="btn line" data-act="sheet" data-sheet="vacation">Going out of town?</button>';
+  }
+  h += "</div>";
+  if (p.alert) {
+    h += '<div class="card"><h3>From Garrett in the group chat</h3><p class="quote">' + esc(p.alert.message) + "</p>";
+    h += p.alert.readAt ? '<span class="pill good" style="align-self:flex-start">You read this at ' + fmtTime(p.alert.readAt) + "</span>"
+      : '<button class="btn primary" data-act="read">I read it</button>';
+    h += "</div>";
+  }
+  return h + weekCard() + pushCard() + '<button class="linkbtn" data-act="sheet" data-sheet="problem" style="align-self:center">Report a problem with a robot</button>' + footer() + adminButton();
+}
+function stuckCard() {
+  if (!state.stuck || state.stuck.u !== who) return "";
+  return '<div class="card"><p class="note bad">Garrett says the ' + state.stuck.which + ' robot got stuck. Please free it and start it again.</p><button class="btn primary" data-act="stuckclear">I fixed it</button></div>';
+}
+function gvacNote() {
+  if (!state.gvac) return "";
+  var mine = OWNER[new Date().getDay()] === "garrett";
+  return '<div class="card"><p class="note info">By the way, Garrett is on vacation until ' + fmtDate(state.gvac) + ". Completely optional, but if you could run the robots on his days (Saturday, Sunday and Monday), it would be a big help.</p>" +
+    (mine ? '<button class="btn ghost" data-act="covered">I ran the robots today</button>' : "") + "</div>";
+}
+function swapCard() {
+  var sw = state.swap; if (!sw) return "";
+  var f = NAMES[sw.from], t = NAMES[sw.to], ok = '<button class="linkbtn" data-act="swapclear" style="align-self:flex-start">OK, got it</button>';
+  if (who === sw.to) {
+    if (sw.status === "pending") return '<div class="card"><h3>Swap request</h3><p>' + f + " asked to swap robot days with you. He would like you to take today's turn, and he will take your next one. Either answer is totally fine.</p>" +
+      '<div class="row2"><button class="btn primary" data-act="swapyes">Yes, I can</button><button class="btn ghost" data-act="swapno">Sorry, I can\'t</button></div></div>';
+    if (sw.status === "yes") return '<div class="card"><p class="note good">You are covering ' + f + "'s robot turn today. Thank you!</p></div>";
+    return "";
+  }
+  if (who !== sw.from) return "";
+  if (sw.status === "pending") return '<div class="card"><p class="note info">You asked ' + t + " to swap days. Waiting for his answer.</p></div>";
+  if (sw.status === "yes") return '<div class="card"><p class="note good">' + t + ' responded: "Yes, I can." He has today\'s turn, and you take his next one.</p>' + ok + "</div>";
+  return '<div class="card"><p class="note warn">' + t + ' responded: "Sorry, I can\'t." Today is still your turn. Garrett has been told.</p>' + ok + "</div>";
+}
+function garrettNotices() {
+  var h = "", sw = state.swap;
+  if (state.stuck) h += '<div class="card"><p class="note warn">' + NAMES[state.stuck.u] + " was told the " + state.stuck.which + " robot is stuck (" + fmtTime(state.stuck.at) + '). Not fixed yet.</p><button class="btn ghost" data-act="stuckclear">Clear it</button></div>';
+  if (sw) {
+    var f = NAMES[sw.from], t = NAMES[sw.to];
+    h += '<div class="card">' + (sw.status === "no" ? '<p class="note bad">' + f + " asked to swap days and " + t + " can't, so neither of them can do the robots today.</p>"
+      : sw.status === "yes" ? '<p class="note good">' + t + " is covering " + f + "'s robot turn today.</p>"
+      : '<p class="note info">' + f + " asked " + t + " to swap days. Waiting for " + t + "'s answer.</p>") +
+      (sw.status === "pending" ? "" : '<button class="btn ghost" data-act="swapclear">Dismiss</button>') + "</div>";
+  }
+  (state.problems || []).forEach(function (p, i) {
+    h += '<div class="card"><p class="note warn">' + NAMES[p.u] + " reported a problem: " + esc(p.text) + '</p><p class="small muted">' + fmtWhen(p.at) + '</p><button class="btn ghost" data-act="problemdone" data-i="' + i + '">Mark as handled</button></div>';
+  });
+  return h;
+}
+function gvacCard() {
+  var h = '<h2 class="sec">My vacation</h2><div class="card">';
+  if (state.gvac) return h + "<p>You are on vacation until " + fmtDate(state.gvac) + '.</p><p class="small muted">Brandon and Shawn see a friendly note asking them to run the robots on your days if they can. It is optional, so they get no reminders for it.</p><button class="btn ghost" data-act="gvacoff">I\'m back</button></div>';
+  var t = new Date(); t.setDate(t.getDate() + 7);
+  return h + '<p class="small muted">Turn this on when you are away. Brandon and Shawn see a friendly note asking them to cover Saturday, Sunday and Monday if they can. It is optional for them.</p><label class="small muted" for="gback">Back in town on</label><input id="gback" type="date" min="' + isoDate(new Date()) + '" value="' + isoDate(t) + '"><button class="btn primary" data-act="gvac">Start my vacation</button></div>';
+}
+function adminCard() {
+  var s = (state.setup || {})[who] || {};
+  return '<div class="card"><h3>Admin panel</h3><p class="small muted">Tap below to open the admin panel. You need the PIN.</p><div class="row2"><button class="btn ghost" data-act="sheet" data-sheet="adminpin">Open admin panel</button><button class="btn ghost" data-act="sheet" data-sheet="adminwhat">What is the admin panel?</button></div>' +
+    (s.accessRequestedAt ? '<p class="small muted">You requested access on ' + fmtWhen(s.accessRequestedAt) + ". Garrett has been told.</p>" : "") + "</div>";
+}
+
+function statusOf(u) {
+  var p = state.people[u], d = p.duty;
+  if (p.vacationUntil) return { pill: "info", label: "Vacation", sub: "Back " + fmtDate(p.vacationUntil) + "." };
+  if (d.status === "done") return { pill: "good", label: "Done", sub: "Finished at " + fmtTime(d.doneAt) + "." };
+  if (d.status === "pushed") return { pill: "warn", label: "Pushed", sub: "Moved to tomorrow. Push " + d.pushes + " of 2." };
+  if (d.due) return { pill: d.missed ? "bad" : "warn", label: d.missed ? "Missed " + d.missed + (d.missed > 1 ? " days" : " day") : "Not done yet",
+    sub: d.remindAt ? "Asked for a reminder at " + fmtHM(d.remindAt) + "." : "No reply yet today.", open: true };
+  return { pill: "plain", label: "Day off", sub: "Next turn " + nextTurn(u) + "." };
+}
+function adminButton() { return '<button class="btn danger sm" data-act="sheet" data-sheet="admin">Access admin panel</button>'; }
+function garrettHome() {
+  var t = OWNER[new Date().getDay()], h = topBar("Garrett");
+  h += '<div class="card focus">';
+  if (state.gvac) h += '<span class="pill info">On vacation</span><h2>You are away until ' + fmtDate(state.gvac) + '</h2><p class="muted">Brandon and Shawn have a note asking them to cover your days if they can.</p>';
+  else if (t === "garrett") h += '<span class="pill info">Your turn</span><h2>Today is your robot day</h2><ul class="todo"><li>Clean both robots, upstairs and downstairs</li><li>Fill them both with water</li></ul>';
+  else h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">' + NAMES[t] + " has the robots today. Your next turn is " + nextTurn("garrett") + ".</p>";
+  h += "</div>";
+  if (state.stuck) h += '<div class="card"><p class="note warn">You told ' + NAMES[state.stuck.u] + " the " + state.stuck.which + " robot is stuck (" + fmtTime(state.stuck.at) + '). Waiting for him to fix it.</p><button class="btn ghost" data-act="stuckclear">Clear it</button></div>';
+  return h + weekCard() + pushCard() + (state.stuck ? "" : '<button class="linkbtn" data-act="sheet" data-sheet="stuck" style="align-self:center">A robot is stuck</button>') + footer() + adminButton();
+}
+function adminScreen() {
+  var h = topBar("Admin"), mine = OWNER[new Date().getDay()] === "garrett";
+  var ro = who !== "garrett";
+  h += '<button class="btn line" data-act="adminback">Close admin panel</button>';
+  if (ro) h += '<p class="note info">View only. You can see everything here, but only Garrett can send alerts or change things.</p>';
+  var mark = h.length;
+  ["brandon", "shawn"].forEach(function (u) {
+    var s = (state.setup || {})[u] || {};
+    if (!ro && s.access === "requested") h += '<div class="card"><p class="note warn">' + NAMES[u] + " requested access to the admin panel on " + fmtWhen(s.accessRequestedAt) + '.</p><p class="small muted">Approving gives him a view-only version of this panel. He sets his own PIN to open it.</p><div class="row2"><button class="btn primary" data-act="approve" data-u="' + u + '">Approve, view only</button><button class="btn ghost" data-act="dismissreq" data-u="' + u + '">Decline</button></div></div>';
+  });
+  h += garrettNotices();
+  if (h.length > mark) h = h.slice(0, mark) + '<h2 class="sec">Needs your attention</h2>' + h.slice(mark);
+  h += '<h2 class="sec">Robots today</h2><div class="card focus">';
+  if (mine) h += '<p class="note info">Today is your day to run the robots.</p>';
+  ["brandon", "shawn"].forEach(function (u) {
+    var s = statusOf(u), p = state.people[u];
+    if (p.vacationUntil && OWNER[new Date().getDay()] === u) h += '<p class="note warn">' + NAMES[u] + " is on vacation. Run the robots yourself today.</p>";
+    h += '<div class="person"><div class="head"><span class="name">' + NAMES[u] + '</span><span class="pill ' + s.pill + '">' + s.label + '</span></div><p class="small muted">' + s.sub + "</p>";
+    if (s.open) h += '<div class="row2"><button class="btn ghost" data-act="nudge" data-u="' + u + '">Remind him now</button><button class="btn ghost" data-act="markdone" data-u="' + u + '">Mark as done</button></div>';
+    h += "</div>";
+  });
+  h += "</div>";
+  var aStart = h.length;
+  h += '<h2 class="sec">Send a group chat alert</h2><div class="card"><p class="small muted">Post in the group chat first, then send it here. They get a notification and tap I read it.</p>' +
+    '<label class="small muted" for="msg">Your message</label><textarea id="msg" placeholder="Paste what you posted in the group chat"></textarea>' +
+    '<div class="seg" role="group" aria-label="Send to">' + [["both", "Both"], ["brandon", "Brandon"], ["shawn", "Shawn"]].map(function (x) {
+      return '<button data-act="to" data-to="' + x[0] + '" aria-pressed="' + (alertTo === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>" +
+    '<button class="btn primary" data-act="send">Send alert</button>';
+  var rows = ["brandon", "shawn"].filter(function (u) { return state.people[u].alert; });
+  if (rows.length) {
+    h += '<p class="quote small">' + esc(state.people[rows[0]].alert.message) + "</p>";
+    rows.forEach(function (u) { var a = state.people[u].alert;
+      h += '<div class="person" style="padding:10px 0 0"><div class="head"><span>' + NAMES[u] + '</span><span class="pill ' + (a.readAt ? "good" : "warn") + '">' + (a.readAt ? "Read " + fmtTime(a.readAt) : "Not read yet") + "</span></div></div>"; });
+  }
+  h += "</div>";
+  if (ro) h = h.slice(0, aStart);
+  h += (ro ? "" : gvacCard()) + setupCard() + historyCard();
+  h += '<h2 class="sec">Activity log</h2><div class="card">' + (state.log.length ? '<ul class="log">' + state.log.slice(0, 20).map(function (l) {
+    return "<li><time>" + fmtTime(l.t) + "</time><span>" + esc(l.text) + "</span></li>"; }).join("") + "</ul>" : '<p class="muted small">Nothing yet today.</p>') + "</div>";
+  if (ro) h = h.replace(/<button[^>]*data-act="(nudge|markdone|test|swapclear|problemdone|stuckclear)"[^>]*>[^<]*<\/button>/g, "").replace(/<div class="row2"><\/div>/g, "");
+  return h + '<button class="btn line" data-act="adminback">Close admin panel</button>';
+}
+
+function weekCard() {
+  var t = new Date().getDay(), h = '<div class="card"><h3>This week</h3><div class="week">';
+  [1, 2, 3, 4, 5, 6, 0].forEach(function (k) {
+    h += '<div class="day' + (k === t ? " today" : "") + (OWNER[k] === who ? " me" : "") + '"><span>' + DAYS[k] + '</span><span class="who" title="' + NAMES[OWNER[k]] + '">' + NAMES[OWNER[k]][0] + "</span></div>";
+  });
+  return h + '</div><div class="legend"><span>B Brandon</span><span>S Shawn</span><span>G Garrett</span></div></div>';
+}
+function pushCard() {
+  var h = '<div class="card"><h3>Notifications</h3>';
+  if (DEMO) h += '<p class="small muted">Demo: once the app is connected, this is where you turn on notifications for this phone.</p>';
+  else if (!(navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches))) h += '<p class="small">To get notifications, tap the Share button in Safari, choose <b>Add to Home Screen</b>, then open Robot Duty from your Home Screen.</p>';
+  else if (push.on) h += '<span class="pill good" style="align-self:flex-start">On for this phone</span>';
+  else h += '<p class="small muted">Turn these on so reminders reach you.</p><button class="btn primary" data-act="push">Turn on notifications</button>';
+  return h + "</div>";
+}
+function footer() { return '<button class="linkbtn" data-act="switch" style="align-self:center">Not ' + NAMES[who] + "? Switch person</button>"; }
+function demoPanel() {
+  var sc = [["turn", "Robot day"], ["missed", "Missed yesterday"], ["off", "Day off"], ["alert", "Group chat alert"], ["check", "Notification check"]];
+  return '<div class="demo"><h3>Demo controls</h3><p class="small muted">Not part of the real app. Tap a situation to see how the screen changes.</p><div class="chips">' +
+    sc.map(function (x) { return '<button class="chip" data-act="scenario" data-sc="' + x[0] + '" aria-pressed="' + (scenario === x[0]) + '">' + x[1] + "</button>"; }).join("") + '<button class="chip" data-act="replay">Replay setup</button><button class="chip" data-act="demoreset">Reset demo</button></div></div>';
+}
+
+/* ---------- bottom sheets ---------- */
+function openSheet(kind) {
+  sheet = kind; var d = state && state.people[who] ? state.people[who].duty : null, h = "";
+  if (kind === "nohelp") {
+    h = '<h2>No notification?</h2><ul class="todo"><li>Open the iPhone Settings app, tap Notifications, tap Robot Duty, and turn on Allow Notifications</li><li>Turn off Do Not Disturb or any Focus mode</li><li>Make sure you opened Robot Duty from your Home Screen, not from Safari</li></ul><button class="btn primary" data-act="retest">Send it again</button>';
+  }
+  if (kind === "swap") {
+    h = "<h2>Ask " + NAMES[other(who)] + ' to swap days?</h2><p class="muted">He gets a notification asking if he can take today\'s robot turn. If he says yes, you take his next turn instead. If he can\'t, today stays your turn.</p><button class="btn primary" data-act="swapreq">Send request</button>';
+  }
+  if (kind === "problem") {
+    h = '<h2>Report a problem</h2><p class="muted">Garrett gets notified right away.</p><button class="btn ghost" data-act="problem" data-t="Robot is stuck">Robot is stuck</button><button class="btn ghost" data-act="problem" data-t="Robot is not working">Robot is not working</button><label class="small muted" for="ptext">Something else</label><textarea id="ptext" placeholder="Type what is wrong"></textarea><button class="btn primary" data-act="problem">Send</button>';
+  }
+  if (kind === "stuck") {
+    var g = ["brandon", "shawn"].filter(function (u) { return state.people[u].duty.status === "done"; })[0] || ["brandon", "shawn"].filter(function (u) { return state.people[u].duty.due; })[0] || (OWNER[new Date().getDay()] !== "garrett" ? OWNER[new Date().getDay()] : "brandon");
+    h = '<h2>Which robot is stuck?</h2><div class="seg" style="grid-template-columns:1fr 1fr" role="group" aria-label="Which robot">' +
+      ["downstairs", "upstairs"].map(function (w) { return '<button data-act="which" data-w="' + w + '" aria-pressed="' + (stuckWhich === w) + '">' + w.charAt(0).toUpperCase() + w.slice(1) + "</button>"; }).join("") +
+      '</div><h3>Who should free it?</h3><p class="muted small">He gets a notification saying which robot is stuck. It clears when he taps I fixed it, or when you clear it.</p>' +
+      [g, other(g)].map(function (u, i) { return '<button class="btn ' + (i ? "ghost" : "primary") + '" data-act="stuck" data-u="' + u + '">Tell ' + NAMES[u] + (i ? "" : ", it was his turn") + "</button>"; }).join("");
+  }
+  if (kind === "admin") {
+    var ac = (state && state.setup && state.setup[who]) || {};
+    kind = who === "garrett" || (ac.access === "approved" && ac.pinSet) ? "adminpin" : ac.access === "approved" ? "adminset" : ac.access === "requested" ? "adminwait" : "adminwhat";
+    sheet = kind;
+  }
+  if (kind === "adminset") {
+    h = '<h2>Set your admin PIN</h2><p class="muted">Garrett approved your request. Pick a PIN that only you know. You get a view-only version of the admin panel.</p><label class="small muted" for="npin">New PIN, 4 to 8 digits</label><input id="npin" type="password" inputmode="numeric" autocomplete="off"><button class="btn primary" data-act="setpin">Save PIN and open</button>';
+  }
+  if (kind === "adminwait") {
+    h = '<h2>Request sent</h2><p class="muted">Garrett has your request. Once he approves it, come back here and you can set your own PIN.</p>';
+  }
+  if (kind === "adminpin") {
+    h = '<h2>Enter PIN</h2><p class="muted">The admin panel is locked. Enter the PIN to open it.</p><label class="small muted" for="apin">PIN</label><input id="apin" type="password" inputmode="numeric" autocomplete="off"><button class="btn primary" data-act="adminpin">Open admin panel</button>';
+  }
+  if (kind === "adminwhat") {
+    h = '<h2>What is the admin panel?</h2><p>It is the dashboard for the house robots. It shows:</p><ul class="todo"><li>Whose robot turn it is, and whether it is done, pushed or missed</li><li>A log of everything: reminders sent, who tapped Done, and who read group chat alerts</li><li>Whether each phone has the app installed and notifications working, and when each person last opened the app</li><li>The last 4 weeks of robot turns for each person</li></ul><p class="muted small">It is locked. If you want a view-only version, send a request. Once Garrett approves it, you set your own PIN.</p><button class="btn primary" data-act="request">Request access</button>';
+  }
+  if (kind === "later") {
+    var n = new Date(), hr = (n.getHours() + 1) % 24;
+    h = '<h2>When should I remind you?</h2><div class="chips"><button class="chip" data-act="settime" data-t="' + pad(hr) + ":" + pad(n.getMinutes()) + '">In 1 hour</button><button class="chip" data-act="settime" data-t="18:00">6:00 PM</button><button class="chip" data-act="settime" data-t="21:00">9:00 PM</button></div>' +
+      '<label class="small muted" for="when">Or pick a time</label><input id="when" type="time" value="' + pad(hr) + ':00"><button class="btn primary" data-act="later">Set reminder</button>';
+  }
+  if (kind === "tomorrow") {
+    h = "<h2>Move your turn to tomorrow?</h2><p class=\"muted\">Reminders stop for today and start again tomorrow. You can do this 2 days in a row. This is push " + (d.pushes + 1) + ' of 2.</p><button class="btn primary" data-act="tomorrow">Yes, move it to tomorrow</button>';
+  }
+  if (kind === "vacation") {
+    var t = new Date(); t.setDate(t.getDate() + 3);
+    h = '<h2>When will you be back?</h2><p class="muted">Reminders pause until then, and Garrett covers your days.</p><label class="small muted" for="backdate">Back in town on</label><input id="backdate" type="date" min="' + isoDate(new Date()) + '" value="' + isoDate(t) + '"><button class="btn primary" data-act="vacation">Start vacation</button>';
+  }
+  document.getElementById("overlay").innerHTML = '<div class="scrim" data-act="close"><div class="sheet" role="dialog" aria-modal="true">' + h + '<button class="btn ghost" data-act="close">Cancel</button></div></div>';
+}
+function closeSheet() { sheet = null; document.getElementById("overlay").innerHTML = ""; }
+var toastTimer;
+function toast(t) {
+  var o = document.querySelector(".toast"); if (o) o.remove();
+  var el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); el.textContent = t; document.body.appendChild(el);
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.remove(); }, 2600);
+}
+
+/* ---------- taps ---------- */
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
+  var a = b.dataset.act;
+  if (a === "close") { if (e.target === b) closeSheet(); return; }
+  if (a === "pick") { who = b.dataset.u; store("who", who); state = null; var first = !setupDone; if (first) { setupDone = true; store("setup", "done"); } render(); load(); if (window.OneSignal && OneSignal.login) OneSignal.login(who);
+    if (first) { markSetup("both"); if (DEMO) render(); window.scrollTo(0, 0); toast("You're all set, " + NAMES[who] + "."); } return; }
+  if (a === "installed") { if (!DEMO && !standalone()) return toast("Almost there. Now open Robot Duty from your Home Screen."); setStep("notify"); render(); window.scrollTo(0, 0); return; }
+  if (a === "obpush") { if (DEMO) return startTest(); var pr = enablePush(); if (pr) pr.then(function () { if (push.on) startTest(); }); return; }
+  if (a === "retest") { closeSheet(); startTest(); return toast("Sent again."); }
+  if (a === "confirm") return confirmNotif();
+  if (a === "which") { stuckWhich = b.dataset.w; openSheet("stuck"); return; }
+  if (a === "stuck") return act({ action: "stuck", u: b.dataset.u, which: stuckWhich }, NAMES[b.dataset.u] + " will get a notification.");
+  if (a === "stuckclear") return act({ action: "stuckclear", u: who }, who === "garrett" ? "Cleared." : "Thanks! Garrett can see it is fixed.");
+  if (a === "approve") return act({ action: "approve", u: b.dataset.u }, NAMES[b.dataset.u] + " can now set a PIN and view the panel.");
+  if (a === "setpin") { var np = document.getElementById("npin").value.trim(); if (!/^\d{4,8}$/.test(np)) return toast("Use 4 to 8 digits."); closeSheet();
+    if (DEMO) { state = demoAct({ action: "setpin", u: who, pin: np }); adminView = true; render(); window.scrollTo(0, 0); return toast("PIN saved."); }
+    pin = np; adminView = true; return act({ action: "setpin", u: who, newPin: np }, "PIN saved."); }
+  if (a === "swapreq") return act({ action: "swapreq", u: who }, "Request sent to " + NAMES[other(who)] + ".");
+  if (a === "swapyes") return act({ action: "swapyes", u: who }, "Thanks! " + NAMES[state.swap.from] + " will be told.");
+  if (a === "swapno") return act({ action: "swapno", u: who }, "No problem. " + NAMES[state.swap.from] + " will be told.");
+  if (a === "swapclear") return act({ action: "swapclear" });
+  if (a === "problem") { var pt = b.dataset.t || document.getElementById("ptext").value.trim(); if (!pt) return toast("Type what is wrong first."); return act({ action: "problem", u: who, text: pt }, "Sent to Garrett. Thanks."); }
+  if (a === "problemdone") return act({ action: "problemdone", i: +b.dataset.i }, "Marked as handled.");
+  if (a === "gvac") { var gd = document.getElementById("gback").value; if (!gd) return toast("Pick the day you are back."); return act({ action: "gvac", date: gd }, "Vacation is on."); }
+  if (a === "gvacoff") return act({ action: "gvacoff" }, "Welcome back.");
+  if (a === "covered") return act({ action: "covered", u: who }, "Thanks! Garrett can see you ran them.");
+  if (a === "demoreset") { demoSetup = freshDemo(); saveDemo(); scenario = "turn"; load(); return toast("Demo reset."); }
+  if (a === "request") return act({ action: "request", u: who }, "Request sent. Garrett will be notified.");
+  if (a === "dismissreq") return act({ action: "dismissreq", u: b.dataset.u }, "Declined.");
+  if (a === "adminpin") { var v = document.getElementById("apin").value.trim(); if (!v) return toast("Enter the PIN first."); closeSheet(); if (DEMO) { if (v !== (who === "garrett" ? DEMO_PIN : demoSetup[who].pin)) return toast("That PIN didn't work."); adminView = true; render(); window.scrollTo(0, 0); return; } pin = v; if (who === "garrett") store("pin", v); adminView = true; return load(); }
+  if (a === "adminback") { adminView = false; if (who !== "garrett") pin = ""; render(); window.scrollTo(0, 0); return; }
+  if (a === "checktest") { if (DEMO) setTimeout(function () { showBanner(true); }, 4000); else act({ action: "testpush", u: who }); return toast("Sending in a few seconds. Swipe out of the app now."); }
+  if (a === "replay") { setupDone = false; store("setup", null); setStep("guide"); who = null; store("who", null); state = null; closeSheet(); document.getElementById("banner").innerHTML = ""; render(); window.scrollTo(0, 0); return; }
+  if (a === "test") return act({ action: "testpush", u: b.dataset.u }, "Test notification sent to " + NAMES[b.dataset.u] + ".");
+  if (a === "switch") { adminView = false; who = null; pin = ""; state = null; store("who", null); store("pin", null); render(); return; }
+  if (a === "pin") { pin = document.getElementById("pin").value.trim(); if (pin) { store("pin", pin); loadError = ""; render(); load(); } return; }
+  if (a === "scenario") { scenario = b.dataset.sc; load(); window.scrollTo(0, 0); return; }
+  if (a === "sheet") { openSheet(b.dataset.sheet); return; }
+  if (a === "settime") { document.getElementById("when").value = b.dataset.t; return; }
+  if (a === "to") { alertTo = b.dataset.to; var m = document.getElementById("msg").value; render(); document.getElementById("msg").value = m; return; }
+  if (a === "done") return act({ action: "done", u: who }, "Marked done. Thanks!");
+  if (a === "undo") return act({ action: "undo", u: who }, "Okay, it's back on your list.");
+  if (a === "back") return act({ action: "back", u: who }, "Welcome back.");
+  if (a === "read") return act({ action: "read", u: who }, "Got it. Garrett can see you read it.");
+  if (a === "tomorrow") return act({ action: "tomorrow", u: who }, "Moved to tomorrow.");
+  if (a === "later") { var t = document.getElementById("when").value; if (!t) return toast("Pick a time first."); return act({ action: "later", u: who, time: t }, "I'll remind you at " + fmtHM(t) + "."); }
+  if (a === "vacation") { var d = document.getElementById("backdate").value; if (!d) return toast("Pick the day you're back."); return act({ action: "vacation", u: who, date: d }, "Enjoy your trip."); }
+  if (a === "nudge") return act({ action: "nudge", u: b.dataset.u }, "Reminder sent to " + NAMES[b.dataset.u] + ".");
+  if (a === "markdone") return act({ action: "done", u: b.dataset.u }, NAMES[b.dataset.u] + " marked as done.");
+  if (a === "send") { var msg = document.getElementById("msg").value.trim(); if (!msg) return toast("Type your message first."); return act({ action: "alert", to: alertTo, message: msg }, "Alert sent."); }
+  if (a === "push") return enablePush();
+});
+document.addEventListener("visibilitychange", function () { if (!document.hidden && who && !DEMO && !sheet) load(); });
+
+/* ---------- notifications (only runs once the app is connected) ---------- */
+function initPush() {
+  if (DEMO || !CONFIG.oneSignalAppId || window.OneSignalDeferred) return;
+  window.OneSignalDeferred = [];
+  var s = document.createElement("script"); s.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; s.defer = true; document.head.appendChild(s);
+  OneSignalDeferred.push(function (OS) {
+    return OS.init({ appId: CONFIG.oneSignalAppId, serviceWorkerPath: CONFIG.swPath, serviceWorkerParam: { scope: CONFIG.swScope } })
+      .then(function () { return who ? OS.login(who) : null; })
+      .then(function () { OS.Notifications.addEventListener("click", function () { confirmNotif(); }); push.ready = true; push.on = !!(OS.Notifications.permission && OS.User.PushSubscription.optedIn); render(); });
+  });
+}
+function enablePush() {
+  if (!window.OneSignal) return toast("Still loading. Try again in a second.");
+  return OneSignal.Notifications.requestPermission().then(function () {
+    push.on = !!OneSignal.Notifications.permission; render(); toast(push.on ? "Notifications are on." : "Notifications are off. Allow them in Settings.");
+  }).catch(function () { toast("Couldn't turn on notifications."); });
+}
+
+if (!setupDone && step === "guide" && !DEMO && standalone()) setStep("pick");
+render();
+if (who) load();
+initPush();
+if (navigator.clearAppBadge) { try { navigator.clearAppBadge(); } catch (e) {} }
+</script>
+</body>
+</html>
