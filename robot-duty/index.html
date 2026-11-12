@@ -451,8 +451,9 @@ function roommateScreen() {
     if (d.pushes >= 2) h += '<p class="small muted">You\'ve moved this twice already. If you\'re away, tap I\'m on vacation.</p>';
     if (!state.swap && !o.vacationUntil) h += '<button class="linkbtn" data-act="sheet" data-sheet="swap" style="align-self:center;font-size:13px">Request to swap days with ' + NAMES[other(who)] + "</button>";
   } else {
-    h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">Your next turn is ' + nextTurn(who) + '.</p><button class="btn line" data-act="sheet" data-sheet="vacation">Going on vacation?</button>';
+    h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">Your next turn is ' + nextTurn(who) + '.</p>';
   }
+  if (!p.vacationUntil && !(d.due && d.status !== "done" && d.status !== "pushed")) h += '<button class="btn line" data-act="sheet" data-sheet="vacation">Going on vacation?</button>';
   h += "</div>";
   if (p.alert) {
     h += '<div class="card"><h3>From Garrett in the group chat</h3><p class="quote">' + esc(p.alert.message) + "</p>";
