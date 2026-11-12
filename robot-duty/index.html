@@ -451,7 +451,7 @@ function roommateScreen() {
     if (d.pushes >= 2) h += '<p class="small muted">You\'ve moved this twice already. If you\'re away, tap I\'m on vacation.</p>';
     if (!state.swap && !o.vacationUntil) h += '<button class="linkbtn" data-act="sheet" data-sheet="swap" style="align-self:center;font-size:13px">Request to swap days with ' + NAMES[other(who)] + "</button>";
   } else {
-    h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">Your next turn is ' + nextTurn(who) + '.</p><button class="btn line" data-act="sheet" data-sheet="vacation">Going out of town?</button>';
+    h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">Your next turn is ' + nextTurn(who) + '.</p><button class="btn line" data-act="sheet" data-sheet="vacation">Going on vacation?</button>';
   }
   h += "</div>";
   if (p.alert) {
@@ -530,6 +530,7 @@ function garrettHome() {
   if (state.gvac) h += '<span class="pill info">On vacation</span><h2>You are away until ' + fmtDate(state.gvac) + '</h2><p class="muted">Brandon and Shawn have a note asking them to cover your days if they can.</p>';
   else if (t === "garrett") h += '<span class="pill info">Your turn</span><h2>Today is your robot day</h2><ul class="todo"><li>Clean both robots, upstairs and downstairs</li><li>Fill them both with water</li></ul>';
   else h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">' + NAMES[t] + " has the robots today. Your next turn is " + nextTurn("garrett") + ".</p>";
+  h += state.gvac ? '<button class="btn ghost" data-act="gvacoff">I\'m back</button>' : '<button class="btn line" data-act="sheet" data-sheet="gvacation">Going on vacation?</button>';
   h += "</div>";
   if (state.stuck) h += '<div class="card"><p class="note warn">You told ' + NAMES[state.stuck.u] + " the " + state.stuck.which + " robot is stuck (" + fmtTime(state.stuck.at) + '). Waiting for him to fix it.</p><button class="btn ghost" data-act="stuckclear">Clear it</button></div>';
   return h + weekCard() + pushCard() + (state.stuck ? "" : '<button class="linkbtn" data-act="sheet" data-sheet="stuck" style="align-self:center">A robot is stuck</button>') + footer() + adminButton();
@@ -617,6 +618,10 @@ function openSheet(kind) {
       ["downstairs", "upstairs"].map(function (w) { return '<button data-act="which" data-w="' + w + '" aria-pressed="' + (stuckWhich === w) + '">' + w.charAt(0).toUpperCase() + w.slice(1) + "</button>"; }).join("") +
       '</div><h3>Who should free it?</h3><p class="muted small">He gets a notification saying which robot is stuck. It clears when he taps I fixed it, or when you clear it.</p>' +
       [g, other(g)].map(function (u, i) { return '<button class="btn ' + (i ? "ghost" : "primary") + '" data-act="stuck" data-u="' + u + '">Tell ' + NAMES[u] + (i ? "" : ", it was his turn") + "</button>"; }).join("");
+  }
+  if (kind === "gvacation") {
+    var gt = new Date(); gt.setDate(gt.getDate() + 7);
+    h = '<h2>When will you be back?</h2><p class="muted">Brandon and Shawn will see a friendly note asking them to run the robots on your days if they can. It is optional for them.</p><label class="small muted" for="gback">Back in town on</label><input id="gback" type="date" min="' + isoDate(new Date()) + '" value="' + isoDate(gt) + '"><button class="btn primary" data-act="gvac">Start vacation</button>';
   }
   if (kind === "admin") {
     var ac = (state && state.setup && state.setup[who]) || {};
