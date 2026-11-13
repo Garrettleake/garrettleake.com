@@ -198,7 +198,7 @@ function chatScreen() {
   list.forEach(function (m) {
     h += '<div class="msg"><div class="who"><span>' + (m.by === who ? "You" : NAMES[m.by]) + "</span><time>" + fmtWhen(m.t) + "</time></div><p>" + esc(m.text) + "</p>";
     if (m.by !== who) h += m.ack && m.ack[who] ? '<span class="pill good" style="align-self:flex-start">You acknowledged this</span>' : '<button class="btn primary" data-act="chatack" data-id="' + esc(m.id) + '">Acknowledge</button>';
-    else if (state.level) h += '<span class="rc">' + EVERYONE.filter(function (u) { return u !== m.by; }).map(function (u) { return receipt(m, u); }).join("<br>") + "</span>";
+    else if (state.level || (DEMO && who === "garrett")) h += '<span class="rc">' + EVERYONE.filter(function (u) { return u !== m.by; }).map(function (u) { return receipt(m, u); }).join("<br>") + "</span>";
     h += "</div>";
   });
   h += '</div><div class="card"><label class="small muted" for="chattext">Message to everyone</label><textarea id="chattext" class="chatbox" maxlength="240" placeholder="Type a message">' + esc(chatDraft) + '</textarea><button class="btn primary" data-act="chatsend">Send to everyone</button><p class="small muted">Everyone gets a notification. Anyone who has not tapped Acknowledge after 24 hours gets a reminder.</p></div>';
@@ -248,8 +248,13 @@ var ICON_CHECK = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" st
 
 /* ---------- demo data (used until the app is connected) ---------- */
 function blankPerson() { return { duty: { due: false, status: "none", missed: 0, pushes: 0, remindAt: null, doneAt: null }, vacationUntil: null, alert: null }; }
+var demoChat = null, demoCleared = {};
 function demoState(sc) {
   var s = { today: isoDate(new Date()), people: { brandon: blankPerson(), shawn: blankPerson() }, setup: demoSetup, log: (demoSetup.xlog || []).slice() };
+  if (!demoChat) { var t0 = Date.now(); demoChat = [
+    { id: "d1", by: "garrett", text: "Trash goes out tonight. Please bring the bins back in tomorrow morning.", t: t0 - 26 * 36e5, seen: { brandon: t0 - 25 * 36e5 }, ack: { shawn: t0 - 24 * 36e5 } },
+    { id: "d2", by: "shawn", text: "Downstairs robot needs a new filter soon.", t: t0 - 2 * 36e5, seen: {}, ack: { garrett: t0 - 36e5 } } ]; }
+  s.chat = demoChat;
   var me = who === "shawn" ? "shawn" : "brandon";
   demoSetup.brandon.checkDue = false; demoSetup.shawn.checkDue = false;
   if (sc === "check") demoSetup[me].checkDue = true;
@@ -263,6 +268,7 @@ function demoState(sc) {
     s.log.push({ t: a.sentAt, text: "Group chat alert sent to Brandon and Shawn." });
   }
   s.swap = demoSetup.swap; s.gvac = demoSetup.gvac; s.stuck = demoSetup.stuck || null; s.problems = demoSetup.problems || []; applySwap(s);
+  ["brandon", "shawn"].forEach(function (u) { if (demoCleared[u]) { s.people[u] = blankPerson(); s.people[u].cleared = s.today; } });
   return s;
 }
 function pastTurns(u, st) {
@@ -279,6 +285,11 @@ function applySwap(s) {
 function demoAct(a) {
   var s = state, p = a.u ? s.people[a.u] : null, n = a.u ? NAMES[a.u] : "";
   function log(t) { var e = { t: Date.now(), text: t }; s.log.unshift(e); demoSetup.xlog = [e].concat(demoSetup.xlog || []).slice(0, 30); }
+  if (a.action === "chatsend") { demoChat.push({ id: "d" + Date.now(), by: who, text: String(a.text).slice(0, 240), t: Date.now(), seen: {}, ack: {} }); log(NAMES[who] + " posted in the chat."); }
+  if (a.action === "chatseen") demoChat.forEach(function (m) { if (m.by !== who && !m.seen[who]) m.seen[who] = Date.now(); });
+  if (a.action === "chatack") demoChat.forEach(function (m) { if (m.by !== who && m.id === a.id) { m.ack[who] = Date.now(); m.seen[who] = m.seen[who] || Date.now(); } });
+  if (a.action === "clearday") { demoCleared[a.u] = true; s.people[a.u] = blankPerson(); s.people[a.u].cleared = s.today; log("Garrett cleared " + n + "'s duties for today."); }
+  if (a.action === "unclear") { demoCleared[a.u] = false; s.people[a.u].cleared = null; log("Garrett put " + n + "'s duties back on for today."); }
   if (a.action === "done") { p.duty.status = "done"; p.duty.doneAt = Date.now(); p.duty.remindAt = null; log(n + " finished the robots."); }
   if (a.action === "undo") { p.duty.status = "pending"; p.duty.doneAt = null; log(n + " undid DONE."); }
   if (a.action === "later") { p.duty.remindAt = a.time; log(n + " asked for a reminder at " + fmtHM(a.time) + "."); }
@@ -773,10 +784,10 @@ document.addEventListener("click", function (e) {
   if (a === "later") { var t = document.getElementById("when").value; if (!t) return toast("Pick a time first."); return act({ action: "later", u: who, time: t }, "I'll remind you at " + fmtHM(t) + "."); }
   if (a === "vacation") { var d = document.getElementById("backdate").value; if (!d) return toast("Pick the day you're back."); return act({ action: "vacation", u: who, date: d }, "Enjoy your trip."); }
   if (a === "nudge") return act({ action: "nudge", u: b.dataset.u }, "Reminder sent to " + NAMES[b.dataset.u] + ".");
-  if (a === "chat") { chatView = true; render(); window.scrollTo(0, document.body.scrollHeight); if (!DEMO && (state.chat || []).some(function (m) { return m.by !== who && !(m.seen && m.seen[who]); })) act({ action: "chatseen" }); return; }
+  if (a === "chat") { chatView = true; render(); window.scrollTo(0, document.body.scrollHeight); if ((state.chat || []).some(function (m) { return m.by !== who && !(m.seen && m.seen[who]); })) act({ action: "chatseen" }); return; }
   if (a === "chatback") { chatView = false; render(); window.scrollTo(0, 0); return; }
   if (a === "chatack") return act({ action: "chatack", id: b.dataset.id }, "Acknowledged.");
-  if (a === "chatsend") { var ct = (document.getElementById("chattext").value || "").trim(); if (!ct) return toast("Type a message first."); if (DEMO) return toast("Chat is off in the demo."); chatDraft = ct; return act({ action: "chatsend", text: ct }, "Sent to everyone."); }
+  if (a === "chatsend") { var ct = (document.getElementById("chattext").value || "").trim(); if (!ct) return toast("Type a message first."); chatDraft = ct; return act({ action: "chatsend", text: ct }, "Sent to everyone."); }
   if (a === "clearday") return act({ action: "clearday", u: b.dataset.u }, NAMES[b.dataset.u] + "'s duties are cleared for today.");
   if (a === "unclear") return act({ action: "unclear", u: b.dataset.u }, NAMES[b.dataset.u] + "'s duties are back on.");
   if (a === "markdone") return act({ action: "done", u: b.dataset.u }, NAMES[b.dataset.u] + " marked as done.");
