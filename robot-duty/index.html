@@ -51,6 +51,17 @@ p{margin:0}
 .muted{color:var(--muted)}
 .small{font-size:15px}
 .top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:4px 4px 2px}
+.top .right{display:flex;align-items:center;gap:10px}
+.chatbtn{position:relative;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);flex:none}
+.chatbtn .dot{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#E5322D;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.msg{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
+.msg:first-of-type{border-top:0}
+.msg .who{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.msg .who time{font-weight:500;font-size:13px;color:var(--muted)}
+.msg p{font-size:17px;overflow-wrap:anywhere}
+.msg .rc{font-size:13px;color:var(--muted)}
+.msg .btn{min-height:44px;font-size:15px}
+.chatbox{width:100%;min-height:76px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);padding:12px;font:inherit;font-size:17px;resize:vertical}
 .top .date{font-size:15px;color:var(--muted);font-weight:500}
 .card{background:var(--surface);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--line)}
 .card.focus{border-color:transparent;box-shadow:0 1px 0 var(--line),0 12px 30px -18px rgba(10,40,70,.45)}
@@ -163,6 +174,46 @@ var state = null, sheet = null, busy = false, loadError = "";
 var scenario = "turn", alertTo = "both";
 var push = { ready: false, on: false };
 var adminView = false;
+var chatView = false, chatDraft = "";
+var ICON_CHAT = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-8 8H8l-5 3 1.6-4.8A8 8 0 1 1 21 12z"/></svg>';
+var EVERYONE = ["garrett", "brandon", "shawn"];
+function chatUnread() { return ((state && state.chat) || []).filter(function (m) { return m.by !== who && !(m.ack && m.ack[who]); }).length; }
+function chatButton() {
+  if (!state || !who) return "";
+  var n = chatUnread();
+  return '<button class="chatbtn" data-act="chat" aria-label="Chat and announcements' + (n ? ", " + n + " unread" : "") + '">' + ICON_CHAT + (n ? '<span class="dot">' + n + "</span>" : "") + "</button>";
+}
+function receipt(m, u) {
+  if (m.ack && m.ack[u]) return NAMES[u] + ": acknowledged " + fmtWhen(m.ack[u]);
+  if (m.seen && m.seen[u]) return NAMES[u] + ": read " + fmtWhen(m.seen[u]) + ", not acknowledged";
+  return NAMES[u] + ": not read yet";
+}
+function chatScreen() {
+  var list = state.chat || [], h = topBar("Chat");
+  var last = list[list.length - 1];
+  if (last && last.by === who && chatDraft && last.text === chatDraft.replace(/\s+/g, " ").trim().slice(0, 240)) chatDraft = "";
+  h += '<button class="btn line" data-act="chatback">Back</button>';
+  h += '<div class="card"><h3>Chat and announcements</h3>';
+  if (!list.length) h += '<p class="muted">No messages yet. Anything typed here goes to everyone in the house.</p>';
+  list.forEach(function (m) {
+    h += '<div class="msg"><div class="who"><span>' + (m.by === who ? "You" : NAMES[m.by]) + "</span><time>" + fmtWhen(m.t) + "</time></div><p>" + esc(m.text) + "</p>";
+    if (m.by !== who) h += m.ack && m.ack[who] ? '<span class="pill good" style="align-self:flex-start">You acknowledged this</span>' : '<button class="btn primary" data-act="chatack" data-id="' + esc(m.id) + '">Acknowledge</button>';
+    else if (state.level) h += '<span class="rc">' + EVERYONE.filter(function (u) { return u !== m.by; }).map(function (u) { return receipt(m, u); }).join("<br>") + "</span>";
+    h += "</div>";
+  });
+  h += '</div><div class="card"><label class="small muted" for="chattext">Message to everyone</label><textarea id="chattext" class="chatbox" maxlength="240" placeholder="Type a message">' + esc(chatDraft) + '</textarea><button class="btn primary" data-act="chatsend">Send to everyone</button><p class="small muted">Everyone gets a notification. Anyone who has not tapped Acknowledge after 24 hours gets a reminder.</p></div>';
+  return h;
+}
+function chatAdminCard() {
+  var list = (state.chat || []).slice(-8).reverse();
+  var h = '<h2 class="sec">Chat and announcements</h2><div class="card"><p class="small muted">Who has read and acknowledged each message. Newest first.</p>';
+  if (!list.length) h += '<p class="muted small">No messages yet.</p>';
+  list.forEach(function (m) {
+    h += '<div class="msg"><div class="who"><span>' + NAMES[m.by] + "</span><time>" + fmtWhen(m.t) + "</time></div><p>" + esc(m.text) + '</p><span class="rc">' +
+      EVERYONE.filter(function (u) { return u !== m.by; }).map(function (u) { return receipt(m, u); }).join("<br>") + "</span></div>";
+  });
+  return h + "</div>";
+}
 var notifyState = "";
 var stuckWhich = "downstairs";
 var DEMO_PIN = "";
@@ -288,13 +339,13 @@ function render() {
   if (!setupDone) h = setupScreen();
   else if (!who) h = pickScreen();
   else if (!state) h = '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card"><p class="muted">' + (loadError ? esc(loadError) : "Loading...") + "</p></div>";
-  else h = adminView ? adminScreen() : who === "garrett" ? garrettHome() : (state.setup && state.setup[who] && state.setup[who].checkDue ? checkScreen() : roommateScreen());
+  else h = chatView ? chatScreen() : adminView ? adminScreen() : who === "garrett" ? garrettHome() : (state.setup && state.setup[who] && state.setup[who].checkDue ? checkScreen() : roommateScreen());
   if (DEMO) h += demoPanel();
   el.innerHTML = h;
 }
 function topBar(name) {
   var d = new Date();
-  return '<div class="top"><h1>' + LOGO + esc(name) + '</h1><span class="date">' + DAYS_LONG[d.getDay()] + ", " + MONTHS[d.getMonth()] + " " + d.getDate() + "</span></div>";
+  return '<div class="top"><h1>' + LOGO + esc(name) + '</h1><div class="right"><span class="date">' + DAYS_LONG[d.getDay()].slice(0, 3) + ", " + MONTHS[d.getMonth()] + " " + d.getDate() + "</span>" + (chatView ? "" : chatButton()) + "</div></div>";
 }
 function pickScreen() {
   return '<div class="top"><h1>' + LOGO + 'Robot Duty</h1></div><div class="card">' + (setupDone ? "" : "<h3>Step 4 of 4</h3>") + '<h2>Who are you?</h2><p class="muted">Pick your name once. The app remembers it.</p><div class="who-list">' +
@@ -577,7 +628,7 @@ function adminScreen() {
   }
   h += "</div>";
   if (ro) h = h.slice(0, aStart);
-  h += (ro ? "" : gvacCard()) + setupCard() + historyCard();
+  h += (ro ? "" : gvacCard()) + chatAdminCard() + setupCard() + historyCard();
   h += '<h2 class="sec">Activity log</h2><div class="card">' + (state.log.length ? '<ul class="log">' + state.log.slice(0, 20).map(function (l) {
     return "<li><time>" + fmtTime(l.t) + "</time><span>" + esc(l.text) + "</span></li>"; }).join("") + "</ul>" : '<p class="muted small">Nothing yet today.</p>') + "</div>";
   if (ro) h = h.replace(/<button[^>]*data-act="(nudge|markdone|clearday|unclear|test|resetuser|swapclear|problemdone|stuckclear)"[^>]*>[^<]*<\/button>/g, "").replace(/<div class="row2"><\/div>/g, "");
@@ -722,12 +773,17 @@ document.addEventListener("click", function (e) {
   if (a === "later") { var t = document.getElementById("when").value; if (!t) return toast("Pick a time first."); return act({ action: "later", u: who, time: t }, "I'll remind you at " + fmtHM(t) + "."); }
   if (a === "vacation") { var d = document.getElementById("backdate").value; if (!d) return toast("Pick the day you're back."); return act({ action: "vacation", u: who, date: d }, "Enjoy your trip."); }
   if (a === "nudge") return act({ action: "nudge", u: b.dataset.u }, "Reminder sent to " + NAMES[b.dataset.u] + ".");
+  if (a === "chat") { chatView = true; render(); window.scrollTo(0, document.body.scrollHeight); if (!DEMO && (state.chat || []).some(function (m) { return m.by !== who && !(m.seen && m.seen[who]); })) act({ action: "chatseen" }); return; }
+  if (a === "chatback") { chatView = false; render(); window.scrollTo(0, 0); return; }
+  if (a === "chatack") return act({ action: "chatack", id: b.dataset.id }, "Acknowledged.");
+  if (a === "chatsend") { var ct = (document.getElementById("chattext").value || "").trim(); if (!ct) return toast("Type a message first."); if (DEMO) return toast("Chat is off in the demo."); chatDraft = ct; return act({ action: "chatsend", text: ct }, "Sent to everyone."); }
   if (a === "clearday") return act({ action: "clearday", u: b.dataset.u }, NAMES[b.dataset.u] + "'s duties are cleared for today.");
   if (a === "unclear") return act({ action: "unclear", u: b.dataset.u }, NAMES[b.dataset.u] + "'s duties are back on.");
   if (a === "markdone") return act({ action: "done", u: b.dataset.u }, NAMES[b.dataset.u] + " marked as done.");
   if (a === "send") { var msg = document.getElementById("msg").value.trim(); if (!msg) return toast("Type your message first."); return act({ action: "alert", to: alertTo, message: msg }, "Alert sent."); }
   if (a === "push") return enablePush();
 });
+document.addEventListener("input", function (e) { if (e.target && e.target.id === "chattext") chatDraft = e.target.value; });
 document.addEventListener("visibilitychange", function () { if (document.hidden) return; clearBadge(); checkTapParam(); if (who && !DEMO && !sheet) load(); });
 
 /* ---------- notifications (only runs once the app is connected) ---------- */
