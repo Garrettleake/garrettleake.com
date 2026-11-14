@@ -312,7 +312,7 @@ function demoAct(a) {
     to.forEach(function (u) { demoSetup[u].lastNotifSentAt = Date.now(); s.people[u].alert = { message: a.message, sentAt: Date.now(), readAt: null }; });
     log("Group chat alert sent to " + to.map(function (u) { return NAMES[u]; }).join(" and ") + ".");
   }
-  if (a.action === "swapreq") { demoSetup.swap = { from: a.u, to: other(a.u), status: "pending", at: Date.now() }; log(n + " asked " + NAMES[other(a.u)] + " to swap days."); }
+  if (a.action === "swapreq") { demoSetup.swap = { from: a.u, to: a.to || other(a.u), status: "pending", at: Date.now() }; log(n + " asked " + NAMES[a.to || other(a.u)] + " to swap days."); }
   if (a.action === "swapyes") { demoSetup.swap.status = "yes"; log(n + " said yes to swapping days with " + NAMES[demoSetup.swap.from] + "."); }
   if (a.action === "swapno") { demoSetup.swap.status = "no"; log(n + " can't swap days with " + NAMES[demoSetup.swap.from] + ". Neither of them can do the robots today."); }
   if (a.action === "swapclear") { demoSetup.swap = null; }
@@ -516,7 +516,7 @@ function roommateScreen() {
       '<button class="btn ghost" data-act="sheet" data-sheet="tomorrow"' + (d.pushes >= 2 ? " disabled" : "") + ">Do it tomorrow</button>" +
       '<button class="btn ghost" data-act="sheet" data-sheet="vacation">I\'m on vacation</button></div>';
     if (d.pushes >= 2) h += '<p class="small muted">You\'ve moved this twice already. If you\'re away, tap I\'m on vacation.</p>';
-    if (!state.swap && !o.vacationUntil) h += '<button class="linkbtn" data-act="sheet" data-sheet="swap" style="align-self:center;font-size:13px">Request to swap days with ' + NAMES[other(who)] + "</button>";
+    h += swapLink();
   } else {
     h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">Your next turn is ' + nextTurn(who) + '.</p>';
   }
@@ -540,6 +540,14 @@ function gvacNote() {
   return '<div class="card"><p class="note info">By the way, Garrett is on vacation until ' + fmtDate(state.gvac) + ". Completely optional, but if you could run the robots on his days (Saturday, Sunday and Monday), it would be a big help.</p>" +
     (mine ? '<button class="btn ghost" data-act="covered">I ran the robots today</button>' : "") + "</div>";
 }
+function swapChoices() {
+  if (!state || state.swap) return [];
+  return ["brandon", "shawn", "garrett"].filter(function (u) {
+    if (u === who) return false;
+    return u === "garrett" ? !state.gvac : !(state.people[u] || {}).vacationUntil;
+  });
+}
+function swapLink() { return swapChoices().length ? '<button class="linkbtn" data-act="sheet" data-sheet="swap" style="align-self:center;font-size:13px">Request to swap days with someone</button>' : ""; }
 function swapCard() {
   var sw = state.swap; if (!sw) return "";
   var f = NAMES[sw.from], t = NAMES[sw.to], ok = '<button class="linkbtn" data-act="swapclear" style="align-self:flex-start">OK, got it</button>';
@@ -552,7 +560,7 @@ function swapCard() {
   if (who !== sw.from) return "";
   if (sw.status === "pending") return '<div class="card"><p class="note info">You asked ' + t + " to swap days. Waiting for his answer.</p></div>";
   if (sw.status === "yes") return '<div class="card"><p class="note good">' + t + ' responded: "Yes, I can." He has today\'s turn, and you take his next one.</p>' + ok + "</div>";
-  return '<div class="card"><p class="note warn">' + t + ' responded: "Sorry, I can\'t." Today is still your turn. Garrett has been told.</p>' + ok + "</div>";
+  return '<div class="card"><p class="note warn">' + t + ' responded: "Sorry, I can\'t." Today is still your turn.' + (sw.from === "garrett" || sw.to === "garrett" ? "" : " Garrett has been told.") + "</p>" + ok + "</div>";
 }
 function garrettNotices() {
   var h = "", sw = state.swap;
@@ -597,6 +605,7 @@ function garrettHome() {
   var t = OWNER[new Date().getDay()], h = topBar("Garrett");
   var gd = (state.people.garrett || {}).duty || {};
   var open = !state.gvac && gd.status !== "done" && gd.status !== "pushed" && gd.due;
+  h += swapCard();
   h += '<div class="card focus">';
   if (state.gvac) h += '<span class="pill info">On vacation</span><h2>You are away until ' + fmtDate(state.gvac) + '</h2><p class="muted">Brandon and Shawn have a note asking them to cover your days if they can.</p>';
   else if (gd.status === "done") h += '<div class="done-mark">' + ICON_CHECK + '</div><h2>Done. Thanks!</h2><p class="muted">Marked done at ' + fmtTime(gd.doneAt) + '. No more reminders today.</p><button class="linkbtn" data-act="undo" style="align-self:flex-start">Tapped it by mistake? Undo</button>';
@@ -612,6 +621,7 @@ function garrettHome() {
       '<button class="btn ghost" data-act="sheet" data-sheet="tomorrow"' + (gd.pushes >= 2 ? " disabled" : "") + '>Do it tomorrow</button>' +
       '<button class="btn ghost" data-act="sheet" data-sheet="gvacation">I\'m on vacation</button></div>';
     if (gd.pushes >= 2) h += '<p class="small muted">You\'ve moved this twice already.</p>';
+    if (gd.due) h += swapLink();
   }
   else h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">' + NAMES[t] + " has the robots today. Your next turn is " + nextTurn("garrett") + ".</p>";
   h += state.gvac ? '<button class="btn ghost" data-act="gvacoff">I\'m back</button>' : open ? "" : '<button class="btn line" data-act="sheet" data-sheet="gvacation">Going on vacation?</button>';
@@ -695,7 +705,8 @@ function openSheet(kind) {
     h = '<h2>No notification?</h2><ul class="todo"><li>Open the iPhone Settings app, tap Notifications, tap Robot Duty, and turn on Allow Notifications</li><li>Turn off Do Not Disturb or any Focus mode</li><li>Make sure you opened Robot Duty from your Home Screen, not from Safari</li></ul><button class="btn primary" data-act="retest">Send it again</button>';
   }
   if (kind === "swap") {
-    h = "<h2>Ask " + NAMES[other(who)] + ' to swap days?</h2><p class="muted">He gets a notification asking if he can take today\'s robot turn. If he says yes, you take his next turn instead. If he can\'t, today stays your turn.</p><button class="btn primary" data-act="swapreq">Send request</button>';
+    h = '<h2>Swap days with someone?</h2><p class="muted">Pick who to ask. He gets a notification asking if he can take today\'s robot turn. If he says yes, you take his next turn instead. If he can\'t, today stays your turn.</p>' +
+      swapChoices().map(function (u) { return '<button class="btn primary" data-act="swapreq" data-to="' + u + '">Ask ' + NAMES[u] + "</button>"; }).join("");
   }
   if (kind === "problem") {
     h = '<h2>Report a problem</h2><p class="muted">Garrett gets notified right away.</p><button class="btn ghost" data-act="problem" data-t="Robot is stuck">Robot is stuck</button><button class="btn ghost" data-act="problem" data-t="Robot is not working">Robot is not working</button><label class="small muted" for="ptext">Something else</label><textarea id="ptext" placeholder="Type what is wrong"></textarea><button class="btn primary" data-act="problem">Send</button>';
@@ -773,7 +784,7 @@ document.addEventListener("click", function (e) {
   if (a === "setpin") { var np = document.getElementById("npin").value.trim(); if (!/^\d{4,8}$/.test(np)) return toast("Use 4 to 8 digits."); closeSheet();
     if (DEMO) { state = demoAct({ action: "setpin", u: who, pin: np }); adminView = true; render(); window.scrollTo(0, 0); return toast("PIN saved."); }
     pin = np; adminView = true; return act({ action: "setpin", u: who, newPin: np }, "PIN saved."); }
-  if (a === "swapreq") return act({ action: "swapreq", u: who }, "Request sent to " + NAMES[other(who)] + ".");
+  if (a === "swapreq") return act({ action: "swapreq", u: who, to: b.dataset.to }, "Request sent to " + NAMES[b.dataset.to] + ".");
   if (a === "swapyes") return act({ action: "swapyes", u: who }, "Thanks! " + NAMES[state.swap.from] + " will be told.");
   if (a === "swapno") return act({ action: "swapno", u: who }, "No problem. " + NAMES[state.swap.from] + " will be told.");
   if (a === "swapclear") return act({ action: "swapclear" });
