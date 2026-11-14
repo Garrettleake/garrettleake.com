@@ -248,13 +248,15 @@ var ICON_CHECK = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" st
 
 /* ---------- demo data (used until the app is connected) ---------- */
 function blankPerson() { return { duty: { due: false, status: "none", missed: 0, pushes: 0, remindAt: null, doneAt: null }, vacationUntil: null, alert: null }; }
-var demoChat = null, demoCleared = {};
+var demoChat = null, demoCleared = {}, demoGduty = null;
 function demoState(sc) {
   var s = { today: isoDate(new Date()), people: { brandon: blankPerson(), shawn: blankPerson() }, setup: demoSetup, log: (demoSetup.xlog || []).slice() };
   if (!demoChat) { var t0 = Date.now(); demoChat = [
     { id: "d1", by: "garrett", text: "Trash goes out tonight. Please bring the bins back in tomorrow morning.", t: t0 - 26 * 36e5, seen: { brandon: t0 - 25 * 36e5 }, ack: { shawn: t0 - 24 * 36e5 } },
     { id: "d2", by: "shawn", text: "Downstairs robot needs a new filter soon.", t: t0 - 2 * 36e5, seen: {}, ack: { garrett: t0 - 36e5 } } ]; }
   s.chat = demoChat;
+  s.people.garrett = blankPerson();
+  if (OWNER[new Date().getDay()] === "garrett" && !demoSetup.gvac) s.people.garrett.duty = demoGduty || { due: true, status: "pending", missed: 0, pushes: 0, remindAt: null, doneAt: null };
   var me = who === "shawn" ? "shawn" : "brandon";
   demoSetup.brandon.checkDue = false; demoSetup.shawn.checkDue = false;
   if (sc === "check") demoSetup[me].checkDue = true;
@@ -285,6 +287,7 @@ function applySwap(s) {
 function demoAct(a) {
   var s = state, p = a.u ? s.people[a.u] : null, n = a.u ? NAMES[a.u] : "";
   function log(t) { var e = { t: Date.now(), text: t }; s.log.unshift(e); demoSetup.xlog = [e].concat(demoSetup.xlog || []).slice(0, 30); }
+  if (a.u === "garrett" && p) setTimeout(function () { demoGduty = state.people.garrett.duty; }, 0);
   if (a.action === "chatsend") { demoChat.push({ id: "d" + Date.now(), by: who, text: String(a.text).slice(0, 240), t: Date.now(), seen: {}, ack: {} }); log(NAMES[who] + " posted in the chat."); }
   if (a.action === "chatseen") demoChat.forEach(function (m) { if (m.by !== who && !m.seen[who]) m.seen[who] = Date.now(); });
   if (a.action === "chatack") demoChat.forEach(function (m) { if (m.by !== who && m.id === a.id) { m.ack[who] = Date.now(); m.seen[who] = m.seen[who] || Date.now(); } });
@@ -420,7 +423,7 @@ function checkScreen() {
 function historyCard() {
   var mark = { done: "✓", pushed: "›", missed: "✕", cleared: "–" }, hist = state.history || {};
   var h = '<h2 class="sec">Last 4 weeks</h2><div class="card"><p class="small muted">Each square is one robot turn, with its day underneath. Oldest first.' + (DEMO ? " Example data." : "") + "</p>";
-  ["brandon", "shawn"].forEach(function (u) {
+  ["brandon", "shawn", "garrett"].filter(function (u) { return u !== "garrett" || (hist.garrett || []).length; }).forEach(function (u) {
     var t = hist[u] || [], n = { done: 0, pushed: 0, missed: 0 };
     t.forEach(function (x) { n[x.s]++; });
     h += '<div class="person"><div class="head"><span class="name">' + NAMES[u] + '</span><span class="small muted">' + n.done + " done, " + n.pushed + " pushed, " + n.missed + ' missed</span></div><div class="hist">' +
@@ -592,11 +595,26 @@ function statusOf(u) {
 function adminButton() { return '<button class="btn danger sm" data-act="sheet" data-sheet="admin">Access admin panel</button>'; }
 function garrettHome() {
   var t = OWNER[new Date().getDay()], h = topBar("Garrett");
+  var gd = (state.people.garrett || {}).duty || {};
+  var open = !state.gvac && gd.status !== "done" && gd.status !== "pushed" && gd.due;
   h += '<div class="card focus">';
   if (state.gvac) h += '<span class="pill info">On vacation</span><h2>You are away until ' + fmtDate(state.gvac) + '</h2><p class="muted">Brandon and Shawn have a note asking them to cover your days if they can.</p>';
-  else if (t === "garrett") h += '<span class="pill info">Your turn</span><h2>Today is your robot day</h2><ul class="todo"><li>Clean both robots, upstairs and downstairs</li><li>Fill them both with water</li></ul>';
+  else if (gd.status === "done") h += '<div class="done-mark">' + ICON_CHECK + '</div><h2>Done. Thanks!</h2><p class="muted">Marked done at ' + fmtTime(gd.doneAt) + '. No more reminders today.</p><button class="linkbtn" data-act="undo" style="align-self:flex-start">Tapped it by mistake? Undo</button>';
+  else if (gd.status === "pushed") h += '<span class="pill warn">Push ' + gd.pushes + ' of 2 used</span><h2>Moved to tomorrow</h2><p class="muted">No more reminders today. Your robot day starts again tomorrow.</p><button class="btn ghost" data-act="done">I did it today after all</button>';
+  else if (gd.due || t === "garrett") {
+    h += gd.missed === 2 ? '<span class="pill bad">Missed 2 days in a row</span><h2>Please get the robots done today</h2>'
+      : gd.missed === 1 ? '<span class="pill warn">Missed yesterday</span><h2>Today is your robot day</h2>'
+      : '<span class="pill info">Your turn</span><h2>Today is your robot day</h2>';
+    h += '<ul class="todo"><li>Clean both robots, upstairs and downstairs</li><li>Fill them both with water</li></ul>';
+    if (gd.remindAt) h += '<p class="note info">Reminder set for ' + fmtHM(gd.remindAt) + ".</p>";
+    h += '<button class="btn primary big" data-act="done">' + ICON_CHECK + 'Done</button>';
+    if (gd.due) h += '<div class="row3"><button class="btn ghost" data-act="sheet" data-sheet="later">Remind me later</button>' +
+      '<button class="btn ghost" data-act="sheet" data-sheet="tomorrow"' + (gd.pushes >= 2 ? " disabled" : "") + '>Do it tomorrow</button>' +
+      '<button class="btn ghost" data-act="sheet" data-sheet="gvacation">I\'m on vacation</button></div>';
+    if (gd.pushes >= 2) h += '<p class="small muted">You\'ve moved this twice already.</p>';
+  }
   else h += '<span class="pill plain">Day off</span><h2>No robot duty today</h2><p class="muted">' + NAMES[t] + " has the robots today. Your next turn is " + nextTurn("garrett") + ".</p>";
-  h += state.gvac ? '<button class="btn ghost" data-act="gvacoff">I\'m back</button>' : '<button class="btn line" data-act="sheet" data-sheet="gvacation">Going on vacation?</button>';
+  h += state.gvac ? '<button class="btn ghost" data-act="gvacoff">I\'m back</button>' : open ? "" : '<button class="btn line" data-act="sheet" data-sheet="gvacation">Going on vacation?</button>';
   h += "</div>";
   if (state.stuck) h += '<div class="card"><p class="note warn">You told ' + NAMES[state.stuck.u] + " the " + state.stuck.which + " robot is stuck (" + fmtTime(state.stuck.at) + '). Waiting for him to fix it.</p><button class="btn ghost" data-act="stuckclear">Clear it</button></div>';
   return h + weekCard() + pushCard() + (state.stuck ? "" : '<button class="linkbtn" data-act="sheet" data-sheet="stuck" style="align-self:center">A robot is stuck</button>') + footer() + adminButton();
@@ -614,7 +632,9 @@ function adminScreen() {
   h += garrettNotices();
   if (h.length > mark) h = h.slice(0, mark) + '<h2 class="sec">Needs your attention</h2>' + h.slice(mark);
   h += '<h2 class="sec">Robots today</h2><div class="card focus">';
-  if (mine) h += '<p class="note info">Today is your day to run the robots.</p>';
+  var gdu = (state.people.garrett || {}).duty || {};
+  if (mine) h += '<p class="note info">Today is your day to run the robots.' + (gdu.status === "done" ? " You marked it done at " + fmtTime(gdu.doneAt) + "." : gdu.status === "pushed" ? " You moved it to tomorrow." : "") + "</p>";
+  else if (gdu.due && gdu.status === "pending") h += '<p class="note warn">You still have a robot turn open from ' + (gdu.missed ? "a missed day" : "a moved day") + ".</p>";
   ["brandon", "shawn"].forEach(function (u) {
     var s = statusOf(u), p = state.people[u];
     if (p.vacationUntil && OWNER[new Date().getDay()] === u) h += '<p class="note warn">' + NAMES[u] + " is on vacation. Run the robots yourself today.</p>";
